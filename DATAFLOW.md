@@ -109,6 +109,17 @@ python3 scripts/am.py analyze --mode hybrid   #    深度：规则+LLM双层
 
 ## 已知边界（v1）
 
+- **subagent 转录刻意不收**：Claude Code 把子代理会话存在
+  `projects/<项目>/<主会话id>/subagents/agent-*.jsonl`（`isSidechain: true`）。里面的
+  user 角色消息是 **agent 写给 agent 的任务指令**（非人手敲），收进人格分轨会污染
+  真人样本——所以连接器只扫项目目录第一层的主会话文件。知识库收其 assistant 侧
+  （解法内容有价值）是 Roadmap 可选项。若你在 include_globs 配了 `**/*.jsonl`
+  想收，注意先把 subagent 前缀加入 automated_patterns。
+- **主会话采集完整性自证**（实测命令）：
+  `find ~/.claude/projects -maxdepth 2 -name '*.jsonl' | wc -l` vs 库内
+  `claude_code` distinct session 数——个别差异应为建库后新出现的空壳会话
+  （仅 mode/cost-state 系统事件，无消息，零遗漏）；周期性重跑 `build` 即收新会话。
+- **history.jsonl 不收**：Claude Code 的手敲命令史与主会话内容大量重合，边际价值低。
 - **自指索引**：用 Claude Code 开发 agent-mirror 本身的会话也会被索引（project 归属
   开发时的 cwd）。若在 `~/agent-mirror/` 目录下开发，`exclude_projects: ["agent-mirror"]`
   可排除；在 home 目录下开发的会话归 `-home-<你的用户名>`，需权衡是否整目录排除。

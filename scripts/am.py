@@ -26,7 +26,7 @@ from datetime import datetime, timezone
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULTS = {
     "sources": {
-        "claude_code": {"enabled": True, "paths": ["~/.claude/projects"], "include_globs": ["**/*.jsonl"]},
+        "claude_code": {"enabled": True, "paths": ["~/.claude/projects"], "include_globs": ["*.jsonl"]},
         "openclaw": {"enabled": True, "paths": ["~/.openclaw/agents"], "include_globs": ["*/sessions/*.jsonl"]},
         "hermes": {"enabled": True, "paths": ["~/.hermes/sessions"], "include_globs": ["*.jsonl", "*.json"]},
         # 自动消息过滤默认规则（config.yaml 可覆盖/追加）
