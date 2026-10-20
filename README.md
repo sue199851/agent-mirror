@@ -32,8 +32,9 @@
 
 ## 使用手册
 
-**核心流程（严格顺序）**：`build → analyze（初稿）→ confirm（校验）→ analyze（定稿）`
+**核心流程（严格顺序，两个域各自走一遍）**：`build → analyze（初稿）→ confirm（校验）→ analyze（定稿）`
 报告头部标注状态：📝 初稿 / ✅ 已校准 —— confirm 是结论定稿的必经站。
+性格域和职业域**独立校准**：`confirm` 默认测性格域，职业域要加 `--track career`（两域都答才算双定稿）。
 
 ### 路线 A · 不用 LLM（零配置，clone 即用）
 
@@ -41,8 +42,9 @@
 python3 scripts/am.py scan               # ① 体检：三源扫到多少数据
 python3 scripts/am.py build              # ② 建库：物化 + FTS5 索引
 python3 scripts/am.py search "精度"      # ③ 随时检索历史会话（秒回）
-python3 scripts/am.py analyze            # ④ 画像【初稿】：证据面板+原型+签名
-python3 scripts/am.py confirm            # ⑤ 自适应校验：情景题+证据确认+盲区自评（无 key 用固定题库，一题一题答，q 放弃）
+python3 scripts/am.py analyze            # ④ 画像【初稿】：双域证据面板+原型+签名（默认 track=both 双域都出）
+python3 scripts/am.py confirm            # ⑤ 校准【性格域】（默认 track=personality）：情景题+证据确认+盲区自评，一题一题答，q 放弃
+python3 scripts/am.py confirm --track career   # ⑤' 校准【职业域】（不加这步，职业报告永远是初稿）
 python3 scripts/am.py analyze            # ⑥ 【定稿】：校准状态+速览+组合身份+自白
 ```
 
@@ -56,7 +58,8 @@ python3 scripts/am.py analyze            # ⑥ 【定稿】：校准状态+速�
 # 一次性配置：config.yaml 的 llm 段 + key（export AM_LLM_API_KEY=... 或 ~/.am-llm-key 文件）
 python3 scripts/am.py ask "我上次怎么调 OOM 的"   # LLM 归纳回答（引用来源，不足处明说）
 python3 scripts/am.py analyze --mode hybrid       # 双层证据：规则 + LLM 解读（默认只见统计）
-python3 scripts/am.py confirm                     # 同⑤的命令：检测到 key 自动 LLM 现场出题（贴合你的真实场景，每轮不同）；--mode rules 可强制题库
+python3 scripts/am.py confirm                     # 性格域：检测到 key 自动 LLM 现场出题（贴合你的真实场景，每轮不同）；--mode rules 可强制题库
+python3 scripts/am.py confirm --track career --mode llm   # 职业域：LLM 出 RIASEC 情景题（测任务/环境偏好，题面同样贴本人项目）
 # 解锁 BARS 评分（LLM 读脱敏样本打 1-5 分）：config.yaml → privacy.llm_exposure: redacted
 ```
 
@@ -64,11 +67,13 @@ python3 scripts/am.py confirm                     # 同⑤的命令：检测到 
 
 ```bash
 python3 scripts/am.py build && python3 scripts/am.py analyze    # 收新数据，出初稿
-python3 scripts/am.py confirm                                    # 再校验一轮（数据变了认知也会变）
+python3 scripts/am.py confirm                                    # 再校验一轮（默认性格域；已答过的维度不重出，缺什么补什么）
+python3 scripts/am.py confirm --track career                     # 职业域同理（上次答过的型不重出）
 python3 scripts/am.py analyze && python3 scripts/am.py diff personality
 ```
 
 > 一句话：**build 进数据 → analyze 出初稿 → confirm 校认知 → analyze 定稿 → diff 看漂移**
+> （confirm 一次只测一个域——答完 `--track personality`（默认）还要 `--track career`）
 
 ### 配置（只有两件事，都不必配）
 
@@ -79,18 +84,22 @@ python3 scripts/am.py analyze && python3 scripts/am.py diff personality
 
 ### 命令速查
 
-| 命令 | 作用 | LLM | 写入 |
-|------|------|-----|------|
-| `scan` | 数据体检 + 分轨 + 时段分布 | ❌ | 报告（stdout/--report） |
-| `build` | 物化 messages.jsonl + FTS5 索引 | ❌ | index/ |
-| `search "<kw>"` | 中文分词检索历史会话 | ❌ | — |
-| `ask "<问题>"` | 检索 + 归纳回答 | 可选 | — |
-| `analyze` | 双域证据面板 + 快照 | 可选 | reports/*.md+html · profiles/*/snapshots/ |
-| `confirm` | 自适应校验：SJT 情景 + 证据确认 + 盲区自评（有 key 时 LLM 现场出题、贴合本人画像且每轮不同；无 key 题库兜底） | 可选 | profiles/*/calibration.yaml |
-| `diff <track>` | 快照漂移对比 | ❌ | — |
-| `export <track>` | 报告数据 JSON（机器格式：二次分析/画图原料） | ❌ | reports/export-*.json |
-| `scan --inspect-hour H` | 诊断：某时段真人消息样本 | ❌ | — |
+每条命令**测什么、默认参数是什么、产出什么**（`[x]` = 可省略的位置参数）：
 
+| 命令 | 测什么 / 产出 | 默认参数 | LLM | 写入 |
+|------|--------------|---------|-----|------|
+| `scan` | 数据体检：各源消息量、真人/自动分轨、时段分布、项目投注 Top | 全部数据源 | ❌ | stdout（`--report` 存文件） |
+| `build` | 建库：物化统一消息流 + FTS 检索索引 | 全部数据源 | ❌ | index/ |
+| `search "<kw>"` | 检索历史会话（中文 LIKE 加权，秒回） | limit=10 | ❌ | — |
+| `ask "<问题>"` | 检索 + LLM 归纳（带来源；无 key 降级为检索清单） | limit=8 | 可选 | — |
+| `analyze` | 双域画像报告：证据面板 → 档位速览 → 原型/霍兰德 → 一句话自白 | **track=both**（双域都出）· mode=rules | 可选 | reports/*.md+html + 快照 |
+| `confirm` | 当事人校验：SJT 情景 + 证据确认 + 盲区自评，答案回写影响下次 analyze 档位 | **track=personality**（职业域须 `--track career`）· mode=auto | 可选 | profiles/*/calibration.yaml |
+| `diff [track]` | 快照漂移对比（state 波动 vs trait 漂移） | track=personality | ❌ | — |
+| `export [track]` | 报告全量数据 JSON（二次分析/画图原料） | track=personality | ❌ | reports/export-*.json |
+| `scan --inspect-hour H` | 诊断：H 点真人消息样本（查周期注入污染） | — | ❌ | — |
+
+> `confirm` 的 `--mode`：auto=有 key 走 LLM 现场出题（默认）/ llm=强制 / rules=固定题库。
+> `analyze` 的 `--mode`：rules=纯本地零依赖（默认）/ hybrid=规则+LLM 解读 / llm=仅 LLM 层。
 > `chat`（多轮会话）与 `calibrate`（BFI-2 自评对照）在 Roadmap。
 
 ### 产出物在哪（人读 vs 机器）

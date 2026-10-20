@@ -44,8 +44,12 @@ python3 scripts/am.py scan               # ① data health check (three default 
 python3 scripts/am.py build              # ② materialize messages.jsonl + FTS5 index
 python3 scripts/am.py search "OOM"       # ③ search past sessions (instant, no LLM)
 python3 scripts/am.py analyze            # ④ portrait draft: evidence panel + prototype
+                                          #    (default --track both: personality AND career)
 python3 scripts/am.py confirm            # ⑤ self-calibration: SJT scenarios + evidence
-                                          #    confirmation + blind-spot self-rating
+                                          #    confirmation + blind-spot rating
+                                          #    (default --track personality)
+python3 scripts/am.py confirm --track career  # ⑤' calibrate the career domain too —
+                                          #    without this, the career report stays a draft
 python3 scripts/am.py analyze            # ⑥ finalized: calibration status + signature
 ```
 
