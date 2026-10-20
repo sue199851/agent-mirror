@@ -920,7 +920,7 @@ def llm_analyze(cfg, track, F, msgs):
 
 
 # ──────────────────────── analyze 报告 ────────────────────────
-def render_analyze(track, F, panel, mapping, llm_text, n_msgs, days, verified=None, mode="rules"):
+def render_analyze(track, F, panel, mapping, llm_text, n_msgs, days, verified=None, mode="rules", headline=None):
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     title = "性格镜像" if track == "personality" else "职业罗盘"
     status = (f"✅ 状态：**已校准**（{verified} 条当事人回答）" if verified
@@ -933,6 +933,10 @@ def render_analyze(track, F, panel, mapping, llm_text, n_msgs, days, verified=No
          f"> {status}",
          "> ⚠️ v0 方法说明：无人群常模对照，**不输出绝对分数**；面板列出每维度的行为证据与方向，"
          "用于纵向自我对照（与上一次快照比）。calibrate（BFI-2 自评对照）接入后才升格为分数。\n"]
+    if headline:
+        # 结论前置：1 秒看懂测出啥（原型/签名/组合身份/霍兰德），细节解读在下方证据面板
+        L.append(headline)
+        L.append("\n---\n")
     if track == "personality":
         L.append("## BFAS 十维 · 证据面板\n")
         for dim, rows in panel.items():
@@ -1810,7 +1814,7 @@ def synthesis_rows(panel, cal):
     return rows
 
 
-def render_synthesis(panel, cal, F=None):
+def render_synthesis(panel, cal, F=None, days=None):
     """画像速览：把证据面板 + 校准答案合成为每维度一行结论（表格 + 整体类型层）。
     措辞规范：不断言"你是X"，只说证据/自评指向什么（METHODOLOGY §7）。"""
     rows = synthesis_rows(panel, cal)
@@ -1829,7 +1833,61 @@ def render_synthesis(panel, cal, F=None):
         if rank:
             riasec_first = rank[0][0].split()[0]
     L.append("\n" + render_prototype([(dim, grade, basis) for dim, grade, basis in rows],
-                                      riasec_first=riasec_first))
+                                      riasec_first=riasec_first, days=days))
+    return "\n".join(L)
+
+
+def render_headline(track, F, panel, cal, n_msgs, days, mapping=None):
+    """结论前置块：报告第一屏 1 秒看懂测出啥（钩子），证据与细节解读在下方（论据）。
+    性格域 = 原型+签名+组合身份+强档统计；职业域 = 霍兰德代码+投注去向。
+    与文末「一句话自白」同源同证据——先给记忆点，再给可证伪的细节。"""
+    if track == "personality":
+        rows = synthesis_rows(panel, cal or {})
+        rows_by_dim = {dim: grade for dim, grade, _ in rows}   # 完整维度名（与 render_prototype 一致）
+        pkey = judge_prototype(rows_by_dim)
+        pdoc = load_prototypes()
+        p = pdoc["prototypes"].get(pkey) or {}
+        sig = ocean_signature(rows_by_dim)
+        strong = [dim for dim, g, _ in rows if g == "倾向具备" or g.startswith("高")]
+        pending = [dim.split()[0] for dim, g, _ in rows if dim not in strong and "否认" not in g]
+        rank = riasec_rank(F, RIASEC_EVID) if F else []
+        riasec_first = rank[0][0].split()[0] if rank else None
+        meme = ""
+        if riasec_first:
+            raw = (pdoc.get("cross_insights") or {}).get(f"{pkey}-{riasec_first}", "")
+            parts = [x.strip() for x in raw.split("｜")] if raw else []
+            meme = parts[0] if parts else ""
+        cal_n = f" · {len(cal['answers'])} 条校准" if cal and cal.get("answers") else ""
+        L = ["## 🎯 一句话结论\n",
+             f"**「{p.get('nickname', '未定型')}」{p.get('emoji', '🔬')} {p.get('name', pkey).split('（')[0]}**"
+             f" · 签名 `{sig}`"
+             + (f" · 组合身份「{meme.split('——')[0].strip()}」" if meme else "")]
+        if p.get("tagline"):
+            L.append(f"> 「{p['tagline']}」" + (f"\n> {meme}" if meme else ""))
+        L.append(f"\n**{len(strong)}/{len(rows)} 维强档**"
+                 + (f" · 待证：{'、'.join(pending)}" if pending else "")
+                 + f" —— {n_msgs} 条真人消息 / {days} 天{cal_n}，证据与档位明细见下方。")
+        return "\n".join(L)
+    # 职业域
+    rank = riasec_rank(F, mapping or RIASEC_EVID) or []
+    if not rank:
+        return None
+    zh = {"R": "现实", "I": "研究", "A": "艺术", "S": "社会", "E": "企业", "C": "常规"}
+    code = "".join(k[0] for k, _ in rank[:3])
+    top, top_v = rank[0]
+    inv = (F.get("investment") or [])
+    # 按消息总量取投注第一（investment 列表按日均强度排序，一日爆发项目会霸榜首）
+    top_inv = max(inv, key=lambda x: x[1]) if inv else None
+    inv1 = f"`{str(top_inv[0]).split(':', 1)[-1]}`（{top_inv[1]} 条）" if top_inv else ""
+    cal_n = f" · {len(cal['answers'])} 条校准" if cal and cal.get("answers") else ""
+    L = ["## 🎯 一句话结论\n",
+         f"**霍兰德代码 `{code}`** · {zh.get(top[0], '')}型主导（{top_v:.2f}"
+         + (f" ≫ {zh.get(rank[1][0].split()[0], '')} {rank[1][1]:.2f}" if len(rank) > 1 else "")
+         + "）"]
+    if inv1:
+        L.append(f"\n**精力投注第一**：{inv1}")
+    L.append(f"\n> 措辞规范：报告只说「你的行为更接近{zh.get(top[0], '')}型环境」——环境匹配陈述，"
+             f"不做\"适合做 X\"断言。{n_msgs} 条消息 / {days} 天{cal_n}，六型证据见下方。")
     return "\n".join(L)
 
 
@@ -1892,7 +1950,7 @@ def ocean_signature(rows_by_dim):
     return " ".join(out)
 
 
-def render_prototype(rows_by_dim, riasec_first=None):
+def render_prototype(rows_by_dim, riasec_first=None, days=None):
     """整体类型层：原型 + 五维签名 + 原型×兴趣交叉身份（差异化引擎）。"""
     protos = load_prototypes()
     rows = {r[0]: r[1] for r in rows_by_dim} if isinstance(rows_by_dim, list) else dict(rows_by_dim)
@@ -1936,7 +1994,7 @@ def render_prototype(rows_by_dim, riasec_first=None):
                  + (f" · {meme_line.split('——')[0].strip()}" if meme_line else "")
                  + f"\n> 「{p.get('tagline', '')}」"
                  + (f"\n> {meme_line}" if meme_line else "")
-                 + "\n> —— 192 天 AI 交互数据全纪录分析 · [Agent Mirror]")
+                 + "\n> —— " + (f"{days} 天" if days else "长期") + " AI 交互数据全纪录分析 · [Agent Mirror]")
     L.append("\n> 原型给方向感和记忆点，维度面板给证据和可证伪性——两层互查，"
              "档位与原型矛盾时以证据为准并重新校验。出处见 frameworks/personality/prototypes.yaml。\n")
     return "\n".join(L)
@@ -2067,8 +2125,9 @@ def main():
                 llm_text = llm_analyze(cfg, t, F, msgs)
             cal = load_calibration(t)
             verified = len(cal.get("answers", [])) if cal and cal.get("answers") else 0
+            headline = render_headline(t, F, panel, cal, len(msgs), days, mapping)
             report = render_analyze(t, F, panel, mapping, llm_text, len(msgs), days,
-                                    verified=verified, mode=args.mode)
+                                    verified=verified, mode=args.mode, headline=headline)
             # 校准状态应用（confirm 交卷后生效）+ 画像速览（证据+校准综合结论）
             if cal and cal.get("answers"):
                 n_sjt = sum(1 for a in cal["answers"] if a.get("type") == "sjt")
@@ -2087,7 +2146,7 @@ def main():
                     report += ("\n被否认的证据维度：" + "、".join(
                         f"**{k}**（{v.replace('discount_', '')}）" for k, v in disc.items()) + "\n")
             if t == "personality":
-                report += "\n" + render_synthesis(panel, cal, F) + "\n"
+                report += "\n" + render_synthesis(panel, cal, F, days=days) + "\n"
             print(report)
             day = datetime.now().strftime("%Y-%m-%d")
             snap = os.path.join(ROOT, "profiles", t, "snapshots", day)
