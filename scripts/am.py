@@ -1319,7 +1319,9 @@ def load_calibration(track):
 
 
 DIMNAME = {"O1": "智性开放", "O2": "经验开放", "C1": "勤勉", "C2": "秩序",
-           "E1": "热情", "E2": "果决", "A2": "礼貌", "N1": "情绪波动", "N2": "退缩"}
+           "E1": "热情", "E2": "果决", "A2": "礼貌", "N1": "情绪波动", "N2": "退缩",
+           # 霍兰德六型（career 域 SJT 投票用，与 BFAS 两字符码无冲突）
+           "R": "现实型", "I": "研究型", "A": "艺术型", "S": "社会型", "E": "企业型", "C": "常规型"}
 
 
 def load_sjt_bank():
@@ -1388,7 +1390,8 @@ def generate_questions(track, F, panel, cal=None):
     """出题（v3 · 自适应，目标 = 凑齐结论）：题数不固定（4~6），缺什么补什么——
     性格域 = 2 道 SJT 情景题（随机抽；行为票参与档位判定，≥2 票 = 行为确认强档）
               + 证据确认题（强证据未确认维度 ×2）+ 盲区自评 ×1；
-    职业域 = 证据确认 ×3 + 盲区自评 ×1（SJT 题库暂只覆盖性格域）。
+    职业域 = 证据确认 ×3 + 盲区自评 ×1（rules 题库只有 BFAS 编码题，职业域 SJT
+              仅在 LLM 模式由 llm_questions 现场生成，votes 投霍兰德六型）。
     SJT 依据：情景判断测验效度优于自我报告（McDaniel et al. 2001）。"""
     import random
     qs, effects = [], []
@@ -1433,13 +1436,14 @@ def robust_json_list(raw):
 
 
 def llm_questions(cfg, track, F, panel, cal):
-    """LLM 现场出题（主路径）：LLM 只负责它擅长的——把 analyze 的完整特征
+    """LLM 现场出题（主路径，双域）：LLM 只负责它擅长的——把 analyze 的完整特征
     （项目投注/证据面板/语言行为特征/上次校准反馈）变成贴合用户本人的 SJT 情景题；
+    性格域 votes 投 BFAS 维度，职业域 votes 投霍兰德六型（RIASEC）；
     证据确认题与盲区自评题由 supplement_questions 确定性补上（数字来自真实面板，
     不经 LLM——题型混合靠构造保证，目标 = 凑齐档位判定所需信息）。
-    固定题库仅作 few-shot 示例定格式 + 无 key 兜底。"""
-    if track != "personality":
-        return None
+    固定题库仅作 few-shot 示例定格式 + 无 key 兜底（题库只有 BFAS 编码题，
+    rules 模式下职业域不出 SJT——LLM 模式才有）。"""
+    is_career = (track == "career")
     invest = "；".join(f"{k.split(':', 1)[-1].split('/')[-1][:30]}({n}条/{d}天)"
                        for k, n, d, *_ in F.get("investment", [])[:5]) or "通用"
     # 证据面板摘要：各维度命中数
@@ -1451,11 +1455,36 @@ def llm_questions(cfg, track, F, panel, cal):
               "frustration", "avg_turns", "deep_session", "night_ratio", "scene_work_ratio")}
     cal_text = (json.dumps(cal.get("answers", [])[:10], ensure_ascii=False)
                 if cal and cal.get("answers") else "无")
-    # few-shot：固定题库第一题（定格式与风格，不是内容来源）
-    bank = load_sjt_bank()
-    fewshot = json.dumps(bank[0], ensure_ascii=False) if bank else "（无示例）"
+    if is_career:
+        VALID = {"R", "I", "A", "S", "E", "C"}
+        sysmsg = ("你是严谨的职业心理学出题助手（Holland RIASEC 框架），"
+                  "只输出纯 JSON，不要任何解释和代码围栏。")
+        fewshot = json.dumps([{"scene": "周五晚十点，你终于有空碰自己的项目。三块屏幕摆着："
+                                        "A 项目的渲染管线又崩了、B 项目有个没验证的算法思路、"
+                                        "C 是一直想重构的配置面板。你先打开哪个？",
+                               "options": [{"text": "修崩的管线——看到红叉就想按下去", "votes": {"R": "+"}},
+                                           {"text": "把算法思路推一步，看看能不能证明", "votes": {"I": "+"}},
+                                           {"text": "重构面板，顺便把配色调漂亮", "votes": {"A": "+"}},
+                                           {"text": "先翻翻群消息，看看大家在忙什么", "votes": {"S": "+"}}]}],
+                              ensure_ascii=False)
+        header = ("你是职业心理学出题助手（Holland RIASEC）。基于下面这位用户的真实 AI 使用画像，"
+                  "现场生成 2~3 道 SJT 情景判断题（RIASEC 版）。")
+        rule_scene = ("1. 每题 = 具体的任务/项目/环境选择场景（贴合用户真实投注领域），测的是"
+                      "兴趣与环境偏好（霍兰德框架），不是能力——问'你会先碰哪个/怎么选'，不问'你会不会'")
+        rule_votes = ("2. 每个选项挂 votes：霍兰德六型字母（R现实/I研究/A艺术/S社会/E企业/C常规）"
+                      "映射 \"+\"/\"-\"，可投 1~3 个型")
+    else:
+        VALID = {"O1", "O2", "C1", "C2", "E1", "E2", "A2", "N1", "N2"}
+        sysmsg = "你是严谨的心理测量出题助手，只输出纯 JSON，不要任何解释和代码围栏。"
+        bank = load_sjt_bank()
+        fewshot = json.dumps(bank[0], ensure_ascii=False) if bank else "（无示例）"
+        header = "你是心理测量出题助手。基于下面这位用户的真实 AI 使用画像，现场生成 2~3 道 SJT 情景判断题。"
+        rule_scene = ("1. 每题 = 具体有画面感的场景（贴合用户真实领域和任务类型）+ 4 个行为选项"
+                      "（第一人称会对 AI 说的话/会做的事）")
+        rule_votes = ("2. 每个选项挂 votes：BFAS 维度代码（O1智性/O2求新/C1勤勉/C2秩序/E1热情/E2果决/"
+                      "A2礼貌/N1波动/N2退缩）映射 \"+\"/\"-\"，可投 1~3 个维度")
     prompt = (
-        "你是心理测量出题助手。基于下面这位用户的真实 AI 使用画像，现场生成 2~3 道 SJT 情景判断题。\n\n"
+        f"{header}\n\n"
         f"## 用户画像（题目要贴合此人）\n"
         f"- 项目投注（领域）：{invest}\n"
         f"- 证据面板（维度命中数）：{panel_text}\n"
@@ -1463,15 +1492,15 @@ def llm_questions(cfg, track, F, panel, cal):
         f"- 上次校准反馈（含历史投票，被否认的维度换角度出题）：{cal_text}\n\n"
         f"## 格式示例（仅定格式/风格，内容必须基于用户画像原创）\n{fewshot}\n\n"
         "## 出题规则\n"
-        "1. 每题 = 具体有画面感的场景（贴合用户真实领域和任务类型）+ 4 个行为选项（第一人称会对 AI 说的话/会做的事）\n"
-        "2. 每个选项挂 votes：BFAS 维度代码（O1智性/O2求新/C1勤勉/C2秩序/E1热情/E2果决/A2礼貌/N1波动/N2退缩）"
-        "映射 \"+\"/\"-\"，可投 1~3 个维度\n"
+        f"{rule_scene}\n"
+        f"{rule_votes}\n"
         "3. 选项间要有真实区分度；禁止元问题（不问'准不准'，只问'你会怎么做'）\n"
-        "4. 优先覆盖：证据强但未确认的维度（行为票可升强档）、证据弱/盲区的维度（从面板命中数看出来）、上次被否认的维度换角度出题\n"
+        "4. 优先覆盖：证据强但未确认的维度（行为票可升强档）、证据弱/盲区的维度"
+        "（从面板命中数看出来）、上次被否认的维度换角度出题\n"
         "5. 只输出 JSON 数组，无其他文字："
         '[{"scene":"...","options":[{"text":"...","votes":{"O1":"+"}}]}]')
     try:
-        raw = llm_chat(cfg, "你是严谨的心理测量出题助手，只输出纯 JSON，不要任何解释和代码围栏。", prompt, max_tokens=3000)
+        raw = llm_chat(cfg, sysmsg, prompt, max_tokens=3000)
         if not raw:
             print("⚠️ LLM 无返回（key/端点/额度？），回退固定题库", file=sys.stderr)
             return None
@@ -1480,7 +1509,7 @@ def llm_questions(cfg, track, F, panel, cal):
             print(f"⚠️ LLM 输出 JSON 解析失败（截断或格式错），回退固定题库。原始输出前 120 字：{raw[:120]!r}", file=sys.stderr)
             return None
         qs, effects = [], []
-        VALID = set(DIMNAME)                    # BFAS 十维白名单，过滤手滑代码
+        # VALID 按域取（BFAS 九维 或 霍兰德六型），过滤 LLM 手滑代码
         for it in items[:3]:
             opts_raw = [o for o in it.get("options", []) if o.get("text")][:4]
             if len(opts_raw) < 3:
@@ -2140,6 +2169,14 @@ def main():
                            f"· ◐ 盲区自评 {n_state}。\n"
                            f"> 证据行标注：confirmed=用户确认成立 · discount_context=情境性（对 AI 如此对人未必）· "
                            f"discount_blindspot=数据盲区 · stated_*=盲区自评补充 · SJT 行为票=情景选择投给维度的票\n")
+                sjt_by_dim = {}
+                for a in cal["answers"]:
+                    if a.get("type") == "sjt":
+                        sjt_by_dim[a["dimension"]] = sjt_by_dim.get(a["dimension"], 0) + \
+                            (1 if a.get("direction") == "+" else -1)
+                if sjt_by_dim:
+                    report += ("SJT 行为票（跨轮累计）：" + " · ".join(
+                        f"{k} {v:+d}" for k, v in sorted(sjt_by_dim.items())) + "\n")
                 disc = {a["dimension"]: a["effect"] for a in cal["answers"]
                         if str(a.get("effect", "")).startswith("discount")}
                 if disc:
