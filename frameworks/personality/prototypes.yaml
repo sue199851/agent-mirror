@@ -1,0 +1,130 @@
+# 性格域框架 · 大五人格原型（整体类型层）
+# 出处: Asendorpf, Caspi & Hofstee (2001) 三原型；Gerlach, Herremans & Liebrand (2018)
+#       在 N≈150 万样本复现三/四类型结构（Nature Human Behaviour）
+# 说明: 回答"整体上我是哪一类人"——大五维度之上的聚类原型层。
+#       维度制（细粒度证据）+ 原型制（整体叙事）双层并存：
+#       原型给方向感和记忆点，维度给证据和可证伪性。
+# 判定原则: 单用户内自参照（档位相对比较 + 校准自评），不做人群常模比较。
+# schema_version: 1
+
+framework: Big Five Prototypes
+citation: |
+  Asendorpf, J. B., Caspi, A., & Hofstee, W. K. B. (2001). The geography of adult
+  personality types. European Journal of Personality, 15.
+  Gerlach, M., Herremans, A. H. T., & Liebrand, L. (2018). Inferring personality
+  traits from the big five. Nature Human Behaviour, 2.
+
+prototypes:
+
+  resilient:
+    name: 坚韧型（Resilient）
+    emoji: 🧭
+    nickname: 人形稳压器
+    tagline: 天塌下来先截图，然后开始排计划。
+    population: "人群占比约 40%（Gerlach 2018）"
+    signature: 情绪稳 + 尽责中高 + 至少一域（外向/开放）活跃
+    narrative: |
+      情绪底盘稳，压力下不易变形。自信、适应力强，对挫折恢复快，
+      与人协作和独处都不耗电。这类人常是团队里"定海神针"式的存在——
+      不是没有情绪，而是情绪不影响决策质量。
+    strengths:
+      - 抗压与恢复力：项目翻车后能快速回到解决问题模式
+      - 决策稳定性：高压力期与平稳期的产出质量差异小
+      - 适应性：环境变化时调整成本低
+    blindspots:
+      - 可能低估风险（"稳"久了容易乐观偏差）
+      - 情绪表达偏少，深度关系里可能被感知为"有距离"
+    ai_collab: 把 AI 当高效工具：目标明确、快速委托、不纠结——但要警惕"太顺"导致的审校不足
+    growth: 刻意保留"慢下来"的环节（你的 confirm 校验就是为此设计的）
+
+  overcontrolled:
+    name: 过控型（Overcontrolled）
+    emoji: 🛡️
+    nickname: 高精度仪器
+    tagline: 交付前在脑内过了 37 遍，第 38 遍才敢按回车。
+    population: "人群占比约 25%"
+    signature: 情绪敏感（N 域偏高）+ 高标准自律（C 域高）
+    narrative: |
+      内在标准高，自律克制，对细节和正确性敏感。深思熟虑，
+      不轻易表态——一旦表态，通常已经验证过多遍。
+      情绪体验丰富但外显少，容易内耗在"够不够好"的自我审查里。
+    strengths:
+      - 质量与可靠性：交付物可信，极少返工
+      - 深度思考：决策前的推演充分
+      - 风险敏感：能提前看到别人忽略的坑
+    blindspots:
+      - 反刍思维：同一问题反复自我审查，启动成本高
+      - 完美主义拖延：等"准备好"的时机成本
+      - 焦虑内化：压力不外显但持续消耗
+    ai_collab: 把 AI 当验证伙伴：反复确认、多轮追问、要求证据——天然适配证据链工作流
+    growth: 练习"够好就发"（ship before ready），给自我审查设截止时间
+
+  undercontrolled:
+    name: 失控型（Undercontrolled）
+    emoji: 🌊
+    nickname: 灵感喷射机
+    tagline: 点子比周报多，收尾全靠缘分和 cron。
+    population: "人群占比约 20%"
+    signature: 自律波动（C 域偏低）+ 自发性强（E 域高/冲动指标高）
+    narrative: |
+      自发性、好奇心和社交能量是引擎。思维跳跃，点子多，
+      起步极快——但收尾和坚持是弱项。规则感偏弱，
+      更愿意即兴调整而不是按计划走。
+    strengths:
+      - 创造性联想：跨域连接能力突出
+      - 行动力：从想法到启动几乎零延迟
+      - 社交能量：激活团队氛围
+    blindspots:
+      - 收尾困难：项目完成度低于启动数
+      - 冲动决策：跳过验证环节
+      - 计划性弱：长期项目容易失焦
+    ai_collab: 把 AI 当发散伙伴：头脑风暴、多方案生成——但需要强制自己用 AI 做结构化收尾
+    growth: 用外部结构补偿（自动化 checklist、cron 督促——你的 openclaw 生态天然适配）
+
+  undetermined:
+    name: 未定型（证据不足）
+    emoji: 🔬
+    population: "-"
+    signature: 档位组合不匹配三原型，或关键维度证据不足
+    narrative: |
+      当前证据（行为数据 + 自评）不足以归入某一原型。
+      这不是"你很平庸"，而是诚实结论：要么数据盲区太大
+      （建议跑 confirm 补盲区自评），要么你的组合本身就跨型。
+    strengths: ["跨型组合常意味着独特视角"]
+    blindspots: ["无法给出针对性建议"]
+    ai_collab: "-"
+    growth: 跑 confirm 补齐盲区维度；积累 2-3 个快照后再看漂移方向
+
+# 判定规则（自参照版）：
+# 1. N 稳定性：N1/N2 档位无"高"且无强证据 → stable；有"高(自评)"或强挫败/焦虑证据 → sensitive
+# 2. C 强度：C1 档位 ∈ {倾向具备, 高} → strong；∈ {低} → weak
+# 3. E 强度：E1/E2 档位 ∈ {倾向具备, 高} → active
+# 4. 匹配：stable + C-strong → resilient | sensitive + C-strong → overcontrolled
+#          C-weak + E-active → undercontrolled | 其余 → undetermined
+
+# ── 交叉洞察矩阵（差异化引擎：性格原型 × 霍兰德兴趣首型 = 18 种组合身份）──
+# 人格（原型）与兴趣（RIASEC）是正交的科学轴（Holland 1997：相关但独立），
+# 交叉后的组合身份 = "千人千面"的来源，每一层各自可回溯证据。
+# 格式：梗名 —— 俏皮人设（传播层）｜ 严肃洞察（严谨层），两层同源同证据。
+cross_insights:
+  # 坚韧型 × 六型
+  "resilient-R": "人形瑞士军刀 —— 工具箱成精，什么坏了都能修，修完还顺手写了个监控。｜稳健实干：危机时刻最被依赖，风险是用'扛'代替'说'"
+  "resilient-I": "定海神探 —— 稳，且想知道为什么稳。｜沉稳探究：稳定情绪给了深挖耐心，警惕对异常信号钝感"
+  "resilient-A": "松弛艺术家 —— deadline 是什么？先看看今天的灵感长什么样。｜从容创作：情绪自由给了空间，deadline 感偏弱"
+  "resilient-S": "人类暖水袋 —— 情绪稳定还愿意听你倒垃圾（情绪意义上的）。｜可靠陪伴：天然支持型角色，自己的情绪也要出口"
+  "resilient-E": "战场指挥官 —— 打仗不慌，撤退都井井有条。｜沉稳推动：适合带团队打硬仗，给成员留表达空间"
+  "resilient-C": "系统守门员 —— 规矩不是束缚，是护城河。｜可靠构建：系统流程守护者，别让'照章办事'成默认答案"
+  # 过控型 × 六型
+  "overcontrolled-R": "精密工匠 —— 作品即人品，误差即事故。｜质量至上：交到你手就是保证，完美主义拖慢交付"
+  "overcontrolled-I": "赛博福尔摩斯 —— 证据链洁癖，结论强迫症。｜审慎学者：反复验证的科研习惯，自我审查压产出"
+  "overcontrolled-A": "内省诗人 —— 在'够好了吗'和'再改亿遍'之间反复横跳。｜敏感创作：敏感是素材、标准是质量，'不敢发'是坑"
+  "overcontrolled-S": "细节照顾者 —— 能看出你没说出口的难受。｜细腻关怀：察觉未说出口的需求，情绪劳动透支自己"
+  "overcontrolled-E": "谨慎推土机 —— 推之前先画了三个月路线图。｜周密组织：风险控制好，过度计划替代行动"
+  "overcontrolled-C": "赛博质检员 —— checklist 是氧气。｜精确守门：QA/审计/合规天选之人，弹性不足"
+  # 失控型 × 六型
+  "undercontrolled-R": "即兴手艺人 —— 先拆了再说。｜上手飞快：实践出真知，需要外部结构帮收尾"
+  "undercontrolled-I": "思维蹦极选手 —— 从编译器聊到哲学只要三条消息。｜跳跃联想：跨域连接是天赋，用工具固化灵感"
+  "undercontrolled-A": "灵感喷射机 —— 创作全靠肾上腺素。｜野生创造：自发性是引擎，纪律外包给协作工具"
+  "undercontrolled-S": "氛围组组长 —— 人脉比待办多。｜热情连接：社交能量激活群体，注意深度关系沉淀"
+  "undercontrolled-E": "起跑线狂魔 —— 从 0 到 1 飞快，从 1 到 100 换人。｜冲劲发起：起盘能力强，长跑交给搭档"
+  "undercontrolled-C": "救火艺术家 —— 乱局里最清醒的那个（乱局之外不一定）。｜灵活运营：救火能力强，用 checklist 补结构感"

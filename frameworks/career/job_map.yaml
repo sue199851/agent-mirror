@@ -1,0 +1,66 @@
+# 职业域框架 · 职业 RIASEC 代码映射表（初始版 v1）
+# 说明: 每个职业的标准霍兰德代码（前三字母）。初始版覆盖技术/AI 生态常见职业，
+#       后续可按用户行业扩展（O*NET 全量 900+ 职业数据可离线导入，Roadmap）。
+# 来源: O*NET 25.0 Interest Codes (public domain) + Holland 常模资料整理
+# schema_version: 1
+
+# 匹配算法：用户霍兰德代码 U（如 IRC）× 职业代码 J（如 IRC）
+# 一致性 = 按位比较的加权命中数（首字母命中权重 3，次位 2，末位 1，含乱序减半）
+
+jobs:
+
+  # ── 研究与算法 ────────────────────────────
+  - { name: 机器学习研究员,       code: IAS, note: 论文与模型创新 }
+  - { name: 算法工程师,           code: IRE, note: 模型落地 }
+  - { name: 编译器工程师,         code: IRC, note: 语言/工具链 }
+  - { name: NLP工程师,            code: IRA, note: }
+  - { name: 数据科学家,           code: ICR, note: 分析与建模 }
+  - { name: 研究科学家(基础科学),  code: IAR, note: }
+  - { name: 安全研究员,           code: IRC, note: 攻防与逆向 }
+
+  # ── 软件工程 ────────────────────────────
+  - { name: 后端工程师,           code: IRC, note: }
+  - { name: 前端工程师,           code: AIC, note: 偏创造性}
+  - { name: 全栈工程师,           code: IRE, note: }
+  - { name: 嵌入式工程师,         code: RIC, note: 硬件近端 }
+  - { name: 测试/质量工程师,      code: CIR, note: }
+  - { name: SRE/运维工程师,       code: RCE, note: 稳定性优先 }
+  - { name: 性能优化工程师,       code: IRC, note: }
+  - { name: 平台/基础设施工程师,  code: RCI, note: }
+  - { name: 开发者关系 DevRel,     code: SEI, note: 社区+内容 }
+
+  # ── AI 生态新职业 ────────────────────────
+  - { name: AI应用工程师,         code: IER, note: 组合现有能力 }
+  - { name: Agent/Prompt工程师,   code: IAE, note: 提示词与编排 }
+  - { name: AI产品经理,           code: ESI, note: }
+  - { name: 数据标注/评估工程师,  code: CRI, note: }
+  - { name: 模型对齐/安全工程师,  code: ISR, note: }
+  - { name: AI训练师/领域专家,    code: SIE, note: 领域知识注入 }
+
+  # ── 硬件/制造 ───────────────────────────
+  - { name: 芯片设计工程师,       code: IRC, note: }
+  - { name: 硬件测试工程师,       code: RCI, note: }
+  - { name: 自动化工程师,         code: RCE, note: }
+  - { name: 工艺/制造工程师,      code: RCE, note: }
+
+  # ── 产品/商业/管理 ───────────────────────
+  - { name: 产品经理,             code: ESA, note: }
+  - { name: 技术项目经理 TPM,     code: ESR, note: }
+  - { name: 工程经理 EM,          code: ESI, note: }
+  - { name: 创始人/创业者,        code: EIS, note: }
+  - { name: 技术销售,             code: ESR, note: }
+  - { name: 解决方案架构师,       code: EIR, note: }
+
+  # ── 内容/设计/教育 ───────────────────────
+  - { name: 技术作家,             code: AIS, note: }
+  - { name: 技术布道师,           code: ESA, note: }
+  - { name: UI/UX设计师,          code: AES, note: }
+  - { name: 教师/培训师,          code: SAE, note: }
+  - { name: 课程设计师,           code: SAE, note: }
+  - { name: 数据可视化工程师,     code: AIC, note: }
+
+  # ── 职能/支持 ───────────────────────────
+  - { name: 技术支持工程师,       code: SRI, note: }
+  - { name: 项目协调,             code: CES, note: }
+  - { name: 财务分析,             code: CIE, note: }
+  - { name: 数据库管理员,         code: CRI, note: }

@@ -1,0 +1,79 @@
+# 性格域框架 · 大五层面量表 BFAS（10 维度）
+# 出处: DeYoung, Quilty & Peterson (2007), "Between facets and domains: 10 aspects of the Big Five"
+# 说明: 大五每个域拆成 2 个 aspect，粒度介于 5 域和 30 面之间——本项目的打分主轴。
+# schema_version: 1
+
+framework: BFAS
+citation: "DeYoung, C. G., Quilty, L. C., & Peterson, J. B. (2007). Journal of Personality and Social Psychology, 93(4)"
+
+domains:
+
+  O:  # 开放性 Openness to Experience
+    label: 开放性
+    facets:
+      O1:
+        name: Intellect / 智性开放
+        zh: 智性
+        desc: 乐于理解抽象概念、参与智性讨论、探究因果关系
+        behavioral_markers: ["追问原理与依据", "开放式探索性问题", "要求对比多种方案"]
+      O2:
+        name: Openness / 经验开放
+        zh: 求新
+        desc: 对新体验、审美、创造性的开放；想象力与发散兴趣
+        behavioral_markers: ["尝试新工具/新方法", "跨领域话题跳跃", "审美与表达多样性"]
+
+  C:  # 尽责性 Conscientiousness
+    label: 尽责性
+    facets:
+      C1:
+        name: Industriousness / 勤勉
+        zh: 勤勉
+        desc: 追求成就、任务坚持、高投入工作
+        behavioral_markers: ["长会话任务坚持", "主动追加检查/验证步骤", "成就导向表达"]
+      C2:
+        name: Orderliness / 秩序
+        zh: 秩序
+        desc: 条理、计划性、结构化偏好
+        behavioral_markers: ["先列计划再执行", "要求结构化输出格式", "文件/命名整理习惯"]
+
+  E:  # 外向性 Extraversion
+    label: 外向性
+    facets:
+      E1:
+        name: Enthusiasm / 热情
+        zh: 热情
+        desc: 社交积极性、正性情绪、人际温暖表达
+        behavioral_markers: ["正性情绪词与感谢表达", "把 AI 当协作者的对话风格"]
+      E2:
+        name: Assertiveness / 果决
+        zh: 果决
+        desc: 主导性、命令式影响风格、决策果断
+        behavioral_markers: ["命令式指令占比", "快速拍板/改向", "明确的目标设定"]
+
+  A:  # 宜人性 Agreeableness
+    label: 宜人性
+    facets:
+      A1:
+        name: Compassion / 共情
+        zh: 共情
+        desc: 关心他人福祉、情感性利他
+        behavioral_markers: ["感谢/体贴表达", "关注用户/他人影响的提问"]
+      A2:
+        name: Politeness / 礼貌
+        zh: 礼貌
+        desc: 尊重、克制、避免冲突的表达方式
+        behavioral_markers: ["请求中的礼貌修饰", "避免命令式直接施压"]
+
+  N:  # 神经质 Neuroticism
+    label: 神经质
+    facets:
+      N1:
+        name: Volatility / 情绪波动
+        zh: 波动
+        desc: 易怒、挫败反应、情绪起伏
+        behavioral_markers: ["挫败/愤怒表达频率", "情绪化改写与中断"]
+      N2:
+        name: Withdrawal / 退缩
+        zh: 退缩
+        desc: 焦虑、抑郁倾向、社交回避
+        behavioral_markers: ["焦虑/担忧表达", "自我怀疑措辞", "求助时的犹豫表述"]

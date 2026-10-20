@@ -1,0 +1,49 @@
+# 性格域框架 · 大五 30 面（NEO-PI-R 划分）
+# 出处: Costa & McCrae, NEO Personality Inventory (30 facets 划分方式，公共学术知识)
+# 说明: 精细化层——当某 aspect 的行为证据矛盾时，下钻到 facet 级判别。Roadmap Phase 3+ 使用。
+# schema_version: 1
+
+framework: NEO-PI-R facets
+citation: "Costa, P. T., & McCrae, R. R. (1992). Revised NEO Personality Inventory (NEO-PI-R) facet 结构"
+
+facets:
+
+  N:  # 神经质
+    N1: { zh: 焦虑,     name: Anxiety }
+    N2: { zh: 愤怒敌意, name: Angry Hostility }
+    N3: { zh: 抑郁,     name: Depression }
+    N4: { zh: 自我意识, name: Self-Consciousness }
+    N5: { zh: 冲动性,   name: Impulsiveness }
+    N6: { zh: 脆弱性,   name: Vulnerability }
+
+  E:  # 外向性
+    E1: { zh: 热情,     name: Warmth }
+    E2: { zh: 乐群,     name: Gregariousness }
+    E3: { zh: 独断,     name: Assertiveness }
+    E4: { zh: 活力,     name: Activity }
+    E5: { zh: 寻求刺激, name: Excitement-Seeking }
+    E6: { zh: 正性情绪, name: Positive Emotions }
+
+  O:  # 开放性
+    O1: { zh: 幻想,     name: Fantasy }
+    O2: { zh: 审美,     name: Aesthetics }
+    O3: { zh: 情感,     name: Feelings }
+    O4: { zh: 行动,     name: Actions }
+    O5: { zh: 观念,     name: Ideas }
+    O6: { zh: 价值,     name: Values }
+
+  A:  # 宜人性
+    A1: { zh: 信任,     name: Trust }
+    A2: { zh: 坦诚,     name: Straightforwardness }
+    A3: { zh: 利他,     name: Altruism }
+    A4: { zh: 顺从,     name: Compliance }
+    A5: { zh: 谦逊,     name: Modesty }
+    A6: { zh: 同理心,   name: Tender-Mindedness }
+
+  C:  # 尽责性
+    C1: { zh: 能力,     name: Competence }
+    C2: { zh: 秩序,     name: Order }
+    C3: { zh: 责任,     name: Dutifulness }
+    C4: { zh: 追求成就, name: Achievement Striving }
+    C5: { zh: 自律,     name: Self-Discipline }
+    C6: { zh: 慎重,     name: Deliberation }

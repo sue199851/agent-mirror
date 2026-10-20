@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Mirror · 职业罗盘</title>
+<style>:root{--accent:#0d9488}
+
+*{box-sizing:border-box}
+body{margin:0;background:#f6f7fb;color:#1f2430;
+  font:15px/1.8 -apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:32px 20px 64px}
+.mast{color:var(--accent);font-weight:700;font-size:13px;letter-spacing:1px}
+h1{font-size:25px;margin:.25em 0 .4em}
+h2{font-size:19px;margin-top:2.2em;padding-bottom:.3em;border-bottom:2px solid var(--accent)}
+h3{font-size:16px;margin-top:1.5em}
+h4{font-size:15px;margin-top:1.2em}
+p{margin:.5em 0}
+code{background:#eef0f6;border:1px solid #e4e7ef;border-radius:4px;padding:0 6px;
+  font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:nowrap}
+table{border-collapse:collapse;width:100%;margin:1em 0;font-size:14px;
+  background:#fff;border:1px solid #e4e7ef;border-radius:8px;overflow:hidden}
+td{border-top:1px solid #edeff5;padding:8px 12px;text-align:left}
+tr:first-child td{background:#f0f2f8;font-weight:600;border-top:none}
+tr:nth-child(even) td{background:#fafbfd}
+ul{padding-left:1.4em;margin:.6em 0}
+li{margin:.3em 0}
+blockquote{margin:1em 0;padding:12px 16px;border-left:4px solid #f0b429;
+  background:#fff8e8;border-radius:6px;color:#6b5518}
+blockquote strong{color:#8a6410}
+footer{margin-top:48px;color:#8a93a3;font-size:12px;text-align:center}
+@media print{body{background:#fff}.wrap{padding:0}}
+</style></head>
+<body><div class="wrap"><div class="mast">🪞 AGENT MIRROR</div>
+<h1>职业罗盘 v0 · 证据面板</h1>
+<blockquote>生成 2026-10-20 14:27 · 371 条真人消息 / 跨度 141 天 · 规则层（无 LLM 参与）<br>📝 状态：<strong>初稿</strong> —— 跑 <code>confirm</code> 校验后重跑 analyze 才是定稿<br>⚠️ v0 方法说明：无人群常模对照，<strong>不输出绝对分数</strong>；面板列出每维度的行为证据与方向，用于纵向自我对照（与上一次快照比）。calibrate（BFI-2 自评对照）接入后才升格为分数。</blockquote>
+<h2>RIASEC 六型 · 证据面板</h2>
+<h3>R 现实型 · 加权分 0.57</h3>
+<ul><li><code>p_task_debug</code> = <strong>28.5%</strong> → 支持 — 排障/实操类任务占比</li></ul>
+<h3>I 研究型 · 加权分 1.02</h3>
+<ul><li><code>p_task_explain</code> = <strong>18.4%</strong> → 支持 — 原理探究类任务占比</li><li><code>why_questions</code> = <strong>1.31次/千字</strong> → 支持 — 「为什么/原理」提问密度（每千字）</li></ul>
+<h3>A 艺术型 · 加权分 0.00</h3>
+<ul><li><code>p_task_variant</code> = <strong>0.0%</strong> · 零命中（不计证据） — 多版本/变体生成占比</li></ul>
+<h3>S 社会型 · 加权分 0.00</h3>
+<ul><li><code>p_task_people</code> = <strong>0.0%</strong> · 零命中（不计证据） — 人际沟通类任务占比</li></ul>
+<h3>E 企业型 · 加权分 0.09</h3>
+<ul><li><code>p_task_plan</code> = <strong>0.0%</strong> · 零命中（不计证据） — 规划/拆解/优先级类占比</li><li><code>achievement</code> = <strong>1.31次/千字</strong> → 支持 — 成就导向表达密度（每千字）</li></ul>
+<h3>C 常规型 · 加权分 0.84</h3>
+<ul><li><code>p_task_batch</code> = <strong>41.9%</strong> → 支持 — 批量/规范化任务占比</li><li><code>format_demands</code> = <strong>0.00次/千字</strong> · 零命中（不计证据） — 结构化要求密度（每千字）</li></ul>
+<h2>兴趣代码（单用户内相对排序，方法学有效）</h2>
+<p><strong>ICR</strong> — 研究型(1.02) &gt; 常规型(0.84) &gt; 现实型(0.57) &gt; 企业型(0.09) &gt; 艺术型(0.00) &gt; 社会型(0.00)</p>
+<h3>类型解读（前三高）</h3>
+<p><strong>研究型（1.02）</strong>：喜欢观察、学习、探究、分析因果，解决抽象问题</p>
+<ul><li>典型环境：研究机构、算法/编译器、数据分析、科学计算</li><li>AI 使用签名：把 AI 当&#x27;思考伙伴&#x27;——追问原理、要求对比方案、让 AI 当反方评审；深挖单题不罢休</li></ul>
+<p><strong>常规型（0.84）</strong>：喜欢结构、规则、精确，处理数据与流程</p>
+<ul><li>典型环境：质量/流程、测试验证、运维/配置、财务/审计</li><li>AI 使用签名：把 AI 当&#x27;检查员&#x27;——模板化任务、批量规范化、清单核对、一致性检查</li></ul>
+<p><strong>现实型（0.57）</strong>：喜欢动手、操作工具机械、解决具体实物问题</p>
+<ul><li>典型环境：工程现场、硬件/设备、制造/部署、户外/实验室实操</li><li>AI 使用签名：把 AI 当&#x27;维修手册&#x27;——问具体故障、参数、复现步骤；偏好命令行和脚本化工具</li></ul>
+<h2>兴趣投注 Top 10（综合分 = 消息数 × √活跃天数，兼顾量与持续性）</h2>
+<table><tr><td>项目</td><td>消息数</td><td>活跃天数</td><td>综合分</td></tr><tr><td>synth-nightowl:<code>autoblog</code></td><td>80</td><td>19</td><td>349</td></tr><tr><td>synth-nightowl:<code>nightlamp</code></td><td>67</td><td>20</td><td>300</td></tr><tr><td>synth-nightowl:<code>synthwave</code></td><td>69</td><td>18</td><td>293</td></tr><tr><td>synth-nightowl:<code>pixelpet</code></td><td>73</td><td>15</td><td>283</td></tr><tr><td>synth-nightowl:<code>langplay</code></td><td>36</td><td>7</td><td>95</td></tr><tr><td>synth-nightowl:<code>homelab</code></td><td>25</td><td>9</td><td>75</td></tr><tr><td>synth-nightowl:<code>junkbox</code></td><td>21</td><td>8</td><td>59</td></tr></table>
+<footer>Agent Mirror v0 · 本地生成 · 原始会话数据不出本机</footer>
+</div></body></html>

@@ -1,0 +1,148 @@
+# 证据映射 · 行为指标 → 性格维度（v0.1 初始版）
+# ★ 本文件是项目的核心可迭代资产：每条映射带方向/依据/置信度，
+#   随本地数据积累与自评对照（Phase 5）逐步校准回写。
+# 置信度: high=文献直接支持 medium=类比推断 low=本地假设（待验证）
+# schema_version: 0.1
+
+mappings:
+
+  # ── 智性开放 O1 ──────────────────────────
+  - indicator: followup_rate              # 追问率：得到答案后继续追问原理/依据的比例
+    dimension: O1
+    direction: +
+    confidence: medium
+    basis: "求证行为与 Intellect 的相关性（认知需求量表与智性开放高度相关, Cacioppo & Petty）"
+
+  - indicator: why_questions_ratio        # "为什么/凭什么/原理"类问题占比
+    dimension: O1
+    direction: +
+    confidence: medium
+    basis: 类比推断：探究因果是 O5(Ideas) 的核心行为标记
+
+  - indicator: alternative_seeking        # 要求"再给几个方案/对比一下"的频率
+    dimension: O1
+    direction: +
+    confidence: low
+    basis: 本地假设：备选探索与智性好奇相关，但可能只反映任务性质
+
+  # ── 经验开放 O2 ──────────────────────────
+  - indicator: new_tool_adoption          # 自愿尝试新工具/新框架的会话占比
+    dimension: O2
+    direction: +
+    confidence: medium
+    basis: "经验开放与新事物尝试的经典相关（Openness-Actions facet）"
+
+  - indicator: cross_domain_jumps         # 跨领域话题切换频率（会话间主题漂移）
+    dimension: O2
+    direction: +
+    confidence: low
+    basis: 本地假设：兴趣广度信号，需排除工作切换噪音
+
+  # ── 勤勉 C1 ─────────────────────────────
+  - indicator: session_persistence        # 长任务会话占比（单会话消息数 > P75）
+    dimension: C1
+    direction: +
+    confidence: medium
+    basis: 任务坚持性是 Achievement Striving 的行为表达
+
+  - indicator: verification_requests      # 主动要求"验证/检查/再确认"的频率
+    dimension: C1
+    direction: +
+    confidence: medium
+    basis: 成就导向者倾向追加质量保障步骤
+
+  # ── 秩序 C2 ─────────────────────────────
+  - indicator: planning_first_ratio       # "先列计划/分步骤"类提示词占比
+    dimension: C2
+    direction: +
+    confidence: high
+    basis: 计划性与 Order facet 的直接行为对应
+
+  - indicator: format_demands             # 明确要求输出格式/结构/模板的频率
+    dimension: C2
+    direction: +
+    confidence: medium
+    basis: 结构化偏好是 Orderliness 的合理代理
+
+  # ── 热情 E1 ─────────────────────────────
+  - indicator: positive_emotion_words     # 正性情绪词频率（开心/漂亮/牛/喜欢）
+    dimension: E1
+    direction: +
+    confidence: high
+    basis: "LIWC 语言学研究：正性情绪词与外向性稳定相关（Pennebaker & King 1999）"
+
+  - indicator: gratitude_ratio            # 感谢表达频率
+    dimension: E1
+    direction: +
+    confidence: medium
+    basis: 对机器的礼貌表达仍携带温暖性语言习惯（一致性待验证）
+
+  # ── 果决 E2 ─────────────────────────────
+  - indicator: imperative_ratio           # 命令式指令占比（"改成/直接/就这样"）
+    dimension: E2
+    direction: +
+    confidence: medium
+    basis: 主导性语言风格与 Assertiveness 相关
+
+  - indicator: quick_pivot                # 快速改向率（推翻上一条指令换方向的频率）
+    dimension: E2
+    direction: +
+    confidence: low
+    basis: 本地假设：决策速度信号，但可能反映探索阶段
+
+  # ── 礼貌 A2 ─────────────────────────────
+  - indicator: politeness_markers         # 请/麻烦/谢谢/可以帮我 等修饰占比
+    dimension: A2
+    direction: +
+    confidence: medium
+    basis: 礼貌修饰与 Politeness facet 的语言表达对应
+
+  # ── 情绪波动 N1 ─────────────────────────
+  - indicator: frustration_words          # 挫败词频率（烦/怎么又/还不行/服了）
+    dimension: N1
+    direction: +
+    confidence: medium
+    basis: "愤怒/挫败语言与 N2(Angry Hostility) 相关（LIWC anger 词表）"
+
+  # ── 退缩 N2 ─────────────────────────────
+  - indicator: anxiety_words              # 焦虑词频率（担心/来不及/怕/焦虑）
+    dimension: N2
+    direction: +
+    confidence: medium
+    basis: 焦虑语言与 N1(Anxiety) 的语言标记相关
+
+  - indicator: self_doubt_phrases         # 自我怀疑措辞（我不确定/是不是我错了）
+    dimension: N2
+    direction: +
+    confidence: low
+    basis: 本地假设：与 N4(自我意识)相关，样本量要求高
+
+  # ── 综合状态指标（不映射单一维度）──────────
+  - indicator: night_ratio                # 深夜工作比（见 config.analysis.night_hours）
+    dimension: state.overload             # 双面指标：投入度+ 或过载信号
+    direction: ~
+    confidence: high
+    basis: 不映射特质；进入 state 周报作过载预警（连续3周>40%）
+
+  - indicator: weekend_ratio              # 周末工作占比
+    dimension: state.boundary
+    direction: ~
+    confidence: medium
+    basis: 工作边界信号，不映射特质
+
+  # ── 场景分层指标（人×情境：生活情境社会表演少，信号更真）────────
+  - indicator: life_frustration            # 生活情境挫败表达（比工作情境更接近本真）
+    dimension: N1
+    direction: +
+    confidence: medium
+    basis: 情境分层权重：工作情境表达带职业角色成分，生活情境社会期望压力低（Mischel 情境论）
+
+  - indicator: life_gratitude_politeness   # 生活情境礼貌表达
+    dimension: A2
+    direction: +
+    confidence: medium
+    basis: 同上——生活情境的礼貌信号更接近特质而非角色表演
+
+# 校准机制（Phase 5 接入）：
+# BFI-2 自评分数 × 本地指标预测分数 → 收敛相关 → 映射权重回写本文件
+# 未通过校准的 low 条目保留但打分时降权。

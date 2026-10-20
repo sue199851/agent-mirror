@@ -1,0 +1,39 @@
+# 职业域框架 · O*NET 六工作价值观（public domain，美国劳工部）
+# 出处: O*NET Work Importance Locator / Work Values（公开领域，可自由使用）
+# 说明: 职业匹配的第二轴——兴趣(RIASEC)回答"喜欢做什么"，价值观回答"工作要给我什么"
+# schema_version: 1
+
+framework: O*NET Work Values
+citation: "O*NET 25.0 Work Importance Locator, U.S. Department of Labor / ETA (public domain)"
+
+values:
+
+  achievement:
+    zh: 成就
+    desc: 做有结果感、能看见能力成长与作品的工作
+    ai_usage_signature: "会话里高频出现'搞定/跑通/性能提升X%'类目标追踪；任务收尾时要求总结成果"
+
+  independence:
+    zh: 自主
+    desc: 自主决定节奏与方法，厌恶微观管理
+    ai_usage_signature: "大量'我自己来试'式探索；把 AI 当自助工具而非决策者；反感被规定流程"
+
+  recognition:
+    zh: 认可
+    desc: 工作成果被看见、被公开承认
+    ai_usage_signature: "关注影响力/可见度——要求整理成可分享的文档、报告、演示"
+
+  relationships:
+    zh: 人际
+    desc: 与同事友好协作、帮助他人的工作氛围
+    ai_usage_signature: "频繁让 AI 帮忙处理'人'的事——措辞、汇报、说服、教学材料"
+
+  support:
+    zh: 支持
+    desc: 有靠谱的管理、培训与资源保障
+    ai_usage_signature: "重视工具链/环境/文档建设类任务；愿意投入在'让以后更容易'的事上"
+
+  working_conditions:
+    zh: 工作条件
+    desc: 稳定、规律、可控的节奏与环境
+    ai_usage_signature: "工作时间规律、深夜占比低；任务节奏平稳、少极限冲刺"

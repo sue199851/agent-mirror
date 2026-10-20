@@ -1,0 +1,54 @@
+# 职业域框架 · 霍兰德 RIASEC 六型（职业兴趣金标准）
+# 出处: Holland, J. L. (1959起) 类型论；O*NET Interest Profiler 采用（public domain）
+# 说明: 回答"你的兴趣与环境匹配"——注意与性格域相互独立（见 ARCHITECTURE.md §5）
+# schema_version: 1
+
+framework: RIASEC
+citation: "Holland, J. L. (1997). Making Vocational Choices (3rd ed.)"
+
+types:
+
+  R:
+    name: Realistic / 现实型
+    zh: 现实型
+    desc: 喜欢动手、操作工具机械、解决具体实物问题
+    work_env: ["工程现场", "硬件/设备", "制造/部署", "户外/实验室实操"]
+    ai_usage_signature: "把 AI 当'维修手册'——问具体故障、参数、复现步骤；偏好命令行和脚本化工具"
+
+  I:
+    name: Investigative / 研究型
+    zh: 研究型
+    desc: 喜欢观察、学习、探究、分析因果，解决抽象问题
+    work_env: ["研究机构", "算法/编译器", "数据分析", "科学计算"]
+    ai_usage_signature: "把 AI 当'思考伙伴'——追问原理、要求对比方案、让 AI 当反方评审；深挖单题不罢休"
+
+  A:
+    name: Artistic / 艺术型
+    zh: 艺术型
+    desc: 喜欢创造、表达、非结构化环境，厌恶规则约束
+    work_env: ["设计/写作", "产品创意", "内容创作", "跨界实验"]
+    ai_usage_signature: "把 AI 当'灵感陪练'——发散式提问、风格探索、多个变体生成、跨领域混搭"
+
+  S:
+    name: Social / 社会型
+    zh: 社会型
+    desc: 喜欢与人协作、帮助/教导/治疗他人
+    work_env: ["教育/培训", "客户成功", "团队协调", "社区运营"]
+    ai_usage_signature: "把 AI 当'沟通顾问'——让 AI 帮忙写解释/汇报/安抚文案；关注他人理解与感受"
+
+  E:
+    name: Enterprising / 企业型
+    zh: 企业型
+    desc: 喜欢主导、说服、组织资源、承担风险达成目标
+    work_env: ["项目管理", "产品/市场", "创业", "跨团队推动"]
+    ai_usage_signature: "把 AI 当'参谋'——要结论不要过程、快速决策、规划与拆解目标、竞品与市场分析"
+
+  C:
+    name: Conventional / 常规型
+    zh: 常规型
+    desc: 喜欢结构、规则、精确，处理数据与流程
+    work_env: ["质量/流程", "测试验证", "运维/配置", "财务/审计"]
+    ai_usage_signature: "把 AI 当'检查员'——模板化任务、批量规范化、清单核对、一致性检查"
+
+# 打分说明：六个维度各 0-100，前三高型构成"霍兰德代码"（如 IRC），
+# 与 job_map.yaml 中的职业代码比对（一致性 = 相同位置字母权重和）。

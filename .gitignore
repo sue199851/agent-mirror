@@ -1,0 +1,22 @@
+# Agent Mirror · 隐私优先的 gitignore
+# 原则：代码开源，人格侧写与本地配置永不入库
+
+# 真实配置（含内网端点/个人路径）——仓库里只放 config.example.yaml 模板
+config.yaml
+
+# 个人画像（人格/职业侧写 = 最高敏感）
+profiles/
+reports/
+index/
+
+# LLM key 兜底文件（新名 + 旧名兼容，两者都不进 git）
+*.key
+.am-llm-key
+.cpd-llm-key
+
+# Python
+__pycache__/
+*.pyc
+
+# 系统
+.DS_Store

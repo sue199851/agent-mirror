@@ -1,0 +1,106 @@
+# 证据映射 · 行为指标 → 职业信号（v0.1 初始版）
+# ★ 职业域的核心可迭代资产。与 behavioral.yaml（性格域）刻意分离：
+#   同一个原始指标可以同时出现在两个文件里，但映射目标与解读独立。
+# 核心立论：显示性偏好（revealed preferences）——没人要求时你自愿把 AI 用在哪，
+#           就是兴趣与价值观最诚实的证据（比问卷的 stated preference 强）。
+# schema_version: 0.1
+
+mappings:
+
+  # ── RIASEC 兴趣轴 ─────────────────────────
+  - indicator: voluntary_project_distribution   # 自愿项目时间分布（非工作安排的学习/工具/实验）
+    dimension: riasec.primary
+    direction: =
+    confidence: high
+    basis: 显示性偏好直接证据：I类(研究/原理) vs A类(创作) vs E类(商业/组织) 的投注比
+    note: "示例：自发把 40% AI 时间投给编译器原理与工具链 → I 优势型；投给内容创作/视觉 → A"
+
+  - indicator: task_type_taxonomy               # 任务类型谱系（调试/原理/规划/创作/沟通/批量处理 占比）
+    dimension: riasec.profile
+    direction: =
+    confidence: medium
+    basis: 任务性质与兴趣类型的结构对应（Holland 环境论：行为是环境的采样）
+
+  - indicator: debugging_vs_designing           # 排障类 vs 构建/设计类任务比
+    dimension: R_vs_I
+    direction: =
+    confidence: low
+    basis: 本地假设：偏排障→R(现实型/解决实物问题)，偏设计→I/A，需本地校准
+
+  - indicator: explanation_demands              # "解释下原理/为什么这样设计"类请求占比
+    dimension: I
+    direction: +
+    confidence: high
+    basis: 研究型兴趣的核心行为标记（探究因果）
+
+  - indicator: variant_generation               # 要求多版本/多风格/多方案的请求占比
+    dimension: A
+    direction: +
+    confidence: medium
+    basis: 发散与创造性探索对应艺术型倾向
+
+  - indicator: people_tasks_ratio               # 涉及'人'的任务占比（汇报/措辞/说服/教学材料）
+    dimension: S
+    direction: +
+    confidence: medium
+    basis: 社会型兴趣的间接代理（AI 场景无真人交互，代理强度受限）
+
+  - indicator: goal_decomposition               # 目标拆解/路线规划/优先级排序类请求占比
+    dimension: E
+    direction: +
+    confidence: medium
+    basis: 主导与组织行为是企业型的核心标记
+
+  - indicator: batch_normalization              # 批量规范化/清单核对/一致性检查类任务占比
+    dimension: C
+    direction: +
+    confidence: medium
+    basis: 常规型的结构化偏好
+
+  # ── 工作价值观轴（O*NET 六项）────────────────
+  - indicator: outcome_tracking                 # "跑通/搞定/提升X%"目标追踪表达频率
+    dimension: achievement
+    direction: +
+    confidence: medium
+    basis: 成就导向的语言标记
+
+  - indicator: self_exploration_style           # "我自己试"式探索占比 vs 全权委托占比
+    dimension: independence
+    direction: +
+    confidence: medium
+    basis: 自主性的行为代理（自主者把 AI 当工具，依附者当决策者）
+
+  - indicator: shareable_output_demands         # 要求产出可分享形态（文档/汇报/演示）的频率
+    dimension: recognition
+    direction: +
+    confidence: low
+    basis: 本地假设：可见度偏好，与工作要求混杂，需区分
+
+  - indicator: tooling_investment               # 投在"让以后更容易"上的时间占比（工具/环境/文档建设）
+    dimension: support
+    direction: +
+    confidence: medium
+    basis: 对基础设施的重视反映支持型价值观
+
+  - indicator: work_rhythm_stability            # 工作节奏稳定性（时段方差/冲刺-间歇比）
+    dimension: working_conditions
+    direction: +
+    confidence: medium
+    basis: 节律偏好反映对可控工作条件的倾向
+
+  # ── 环境适配信号（报告用，不直接给职业结论）──
+  - indicator: deep_dive_vs_breadth             # 深挖单题时长分布 vs 话题广度
+    dimension: env.focus
+    direction: ~
+    basis: 输出为"专注型环境 vs 多线环境"偏好提示，不做职业推荐
+
+  - indicator: context_switch_frequency         # 上下文切换频率（会话/项目跳转）
+    dimension: env.multitasking
+    direction: ~
+    basis: 同上，环境偏好提示
+
+# 匹配输出规范：
+# 1. riasec.profile 六维分数 → 霍兰德代码（前三高）
+# 2. 代码 × job_map.yaml 一致性排名 → Top10 相近职业（附一致性分）
+# 3. 报告措辞规范：永远输出"你的行为更接近 X 型环境"而非"你适合做 X"
+#    （环境匹配陈述 vs 人格断言，前者可证伪、后者过度承诺）

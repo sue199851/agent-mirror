@@ -1,0 +1,68 @@
+# config.example.yaml —— 复制为 config.yaml 后按需修改（config.yaml 已被 .gitignore 挡住，永不上传）
+# cp config.example.yaml config.yaml
+#
+# 必配项只有一个概念：数据源目录（三默认源通常开箱即用，路径不同才需要改）
+# LLM 是可选的：不配置时 search/scan/analyze 全部可用，ask 自动降级为检索清单
+
+llm:                              # 可选 —— OpenAI 兼容端点（如 vLLM / 各类中转 / 官方 API）
+  base_url: https://your-llm-endpoint.example.com/v1   # ← 换成你的端点
+  model: your-model-name
+  api_key_env: AM_LLM_API_KEY    # export 后生效（推荐，key 不落盘）
+  api_key_file: ~/.am-llm-key    # 或 key 文件（chmod 600，不进 git）
+
+privacy:
+  # LLM 暴露档位：stats_only（默认，只发统计指标）| redacted（统计+脱敏片段）| off（禁用 LLM）
+  llm_exposure: stats_only
+  redact_patterns:               # redacted 档的脱敏正则表（按需追加）
+    - ['\d{4}[A-Za-z0-9]{10,}', '<VEH-ID>']
+    - ['/home/[^/\s]+', '<HOME>']
+    - ['[\w.+-]+@[\w-]+\.[\w.]+', '<EMAIL>']
+
+sources:
+  # 三个内置源：每源支持 paths 列表（多目录，如多台机器数据合并）。
+  # 路径人人不同——按自己安装位置改；不用某源就 enabled: false
+  claude_code:
+    enabled: true
+    paths: ["~/.claude/projects"]
+  openclaw:
+    enabled: true
+    paths: ["~/.openclaw/agents"]
+  hermes:
+    enabled: true
+    paths: ["~/.hermes/sessions"]
+
+  # 项目排除（子串匹配 project 字段）：隐私目录/噪音会话，如 ["-mnt-work-private"]
+  exclude_projects: []
+
+  # 自动消息过滤：命中的 user 消息标记为 automated（不进画像，单独作部署倾向信号）
+  # 内置默认来自实测发现的注入模式；追加你自己 agent 的特征前缀（正则）
+  automated_patterns:
+    - '^\[cron:'                 # OpenClaw 定时任务注入
+    - '^Read HEARTBEAT\.md'      # OpenClaw 心跳注入
+    # - '^【自动化】'             # 示例：追加你自己系统的注入标记
+
+  # 自定义源：零代码接入，配置协议见 CONFIG.md（type/format 字段映射）
+  custom: []
+  # 示例：
+  # custom:
+  #   - name: my-agent
+  #     type: jsonl
+  #     path: ~/.myagent/logs/
+  #     session_glob: "*.jsonl"
+  #     format:
+  #       message_path: "$.messages[*]"
+  #       role_field: role
+  #       role_user_value: human
+  #       role_assistant_value: assistant
+  #       text_field: text
+  #       timestamp_field: created_at
+  #       timestamp_format: iso8601
+
+knowledge:
+  index_path: index/knowledge.sqlite
+  entry_granularity: day_session
+  assistant_index: referenced_only
+
+analysis:
+  state_window_days: 7                  # state 周报窗口
+  night_hours: [23, 24, 0, 1, 2, 3, 4, 5]   # 深夜时段定义（本地时区）

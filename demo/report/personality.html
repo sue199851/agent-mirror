@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Mirror · 性格镜像</title>
+<style>:root{--accent:#7c5cff}
+
+*{box-sizing:border-box}
+body{margin:0;background:#f6f7fb;color:#1f2430;
+  font:15px/1.8 -apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:32px 20px 64px}
+.mast{color:var(--accent);font-weight:700;font-size:13px;letter-spacing:1px}
+h1{font-size:25px;margin:.25em 0 .4em}
+h2{font-size:19px;margin-top:2.2em;padding-bottom:.3em;border-bottom:2px solid var(--accent)}
+h3{font-size:16px;margin-top:1.5em}
+h4{font-size:15px;margin-top:1.2em}
+p{margin:.5em 0}
+code{background:#eef0f6;border:1px solid #e4e7ef;border-radius:4px;padding:0 6px;
+  font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:nowrap}
+table{border-collapse:collapse;width:100%;margin:1em 0;font-size:14px;
+  background:#fff;border:1px solid #e4e7ef;border-radius:8px;overflow:hidden}
+td{border-top:1px solid #edeff5;padding:8px 12px;text-align:left}
+tr:first-child td{background:#f0f2f8;font-weight:600;border-top:none}
+tr:nth-child(even) td{background:#fafbfd}
+ul{padding-left:1.4em;margin:.6em 0}
+li{margin:.3em 0}
+blockquote{margin:1em 0;padding:12px 16px;border-left:4px solid #f0b429;
+  background:#fff8e8;border-radius:6px;color:#6b5518}
+blockquote strong{color:#8a6410}
+footer{margin-top:48px;color:#8a93a3;font-size:12px;text-align:center}
+@media print{body{background:#fff}.wrap{padding:0}}
+</style></head>
+<body><div class="wrap"><div class="mast">🪞 AGENT MIRROR</div>
+<h1>性格镜像 v0 · 证据面板</h1>
+<blockquote>生成 2026-10-20 14:27 · 371 条真人消息 / 跨度 141 天 · 规则层（无 LLM 参与）<br>✅ 状态：<strong>已校准</strong>（20 条当事人回答）<br>⚠️ v0 方法说明：无人群常模对照，<strong>不输出绝对分数</strong>；面板列出每维度的行为证据与方向，用于纵向自我对照（与上一次快照比）。calibrate（BFI-2 自评对照）接入后才升格为分数。</blockquote>
+<h2>BFAS 十维 · 证据面板</h2>
+<h3>O1 智性开放 · 证据强度 ▮▮▮▯▯  3 项</h3>
+<ul><li><code>why_questions</code> = <strong>1.31次/千字</strong> → 支持 — 「为什么/原理」类提问密度</li><li><code>followup</code> = <strong>75.0%</strong> → 支持 — 追问率（会话平均轮数）</li><li><code>alternative_seeking</code> = <strong>1.78次/千字</strong> → 支持 — 要求备选/对比方案</li><li><code>followup_rate</code> = <strong>-</strong> · 待采集（指标未实现） — [medium] 求证行为与 Intellect 的相关性（认知需求量表与智性开放高度相关, Cacioppo &amp; Petty）</li><li><code>why_questions_ratio</code> = <strong>-</strong> · 待采集（指标未实现） — [medium] 类比推断：探究因果是 O5(Ideas) 的核心行为标记</li></ul>
+<h3>O2 经验开放 · 证据强度 ▯▯▯▯▯  0 项</h3>
+<ul><li><code>cross_domain</code> = <strong>-</strong> · 待采集（指标未实现） — 跨领域探索（v0 未实现，证据不足）</li><li><code>new_tool_adoption</code> = <strong>-</strong> · 待采集（指标未实现） — [medium] 经验开放与新事物尝试的经典相关（Openness-Actions facet）</li><li><code>cross_domain_jumps</code> = <strong>-</strong> · 待采集（指标未实现） — [low] 本地假设：兴趣广度信号，需排除工作切换噪音</li></ul>
+<h3>C1 勤勉 · 证据强度 ▮▮▯▯▯  2 项</h3>
+<ul><li><code>deep_session</code> = <strong>43.8%</strong> → 支持 — 深度会话占比（&gt;3 轮）</li><li><code>achievement</code> = <strong>1.31次/千字</strong> → 支持 — 成就导向表达密度</li><li><code>verification</code> = <strong>0.00次/千字</strong> · 零命中（不计证据） — 主动要求验证/检查</li><li><code>session_persistence</code> = <strong>-</strong> · 待采集（指标未实现） — [medium] 任务坚持性是 Achievement Striving 的行为表达</li><li><code>verification_requests</code> = <strong>-</strong> · 待采集（指标未实现） — [medium] 成就导向者倾向追加质量保障步骤</li></ul>
+<h3>C2 秩序 · 证据强度 ▯▯▯▯▯  0 项</h3>
+<ul><li><code>planning_first</code> = <strong>0.00次/千字</strong> · 零命中（不计证据） — 计划先行表达密度</li><li><code>format_demands</code> = <strong>0.00次/千字</strong> · 零命中（不计证据） — 格式/结构化要求密度</li><li><code>planning_first_ratio</code> = <strong>-</strong> · 待采集（指标未实现） — [high] 计划性与 Order facet 的直接行为对应</li></ul>
+<h3>E1 热情 · 证据强度 ▮▮▯▯▯  2 项</h3>
+<ul><li><code>positive</code> = <strong>0.37次/千字</strong> → 支持 — 正性情绪词密度</li><li><code>gratitude_politeness</code> = <strong>0.31次/千字</strong> → 支持 — 感谢/礼貌表达密度</li><li><code>positive_emotion_words</code> = <strong>-</strong> · 待采集（指标未实现） — [high] LIWC 语言学研究：正性情绪词与外向性稳定相关（Pennebaker &amp; King 1999）</li><li><code>gratitude_ratio</code> = <strong>-</strong> · 待采集（指标未实现） — [medium] 对机器的礼貌表达仍携带温暖性语言习惯（一致性待验证）</li></ul>
+<h3>E2 果决 · 证据强度 ▮▮▯▯▯  2 项</h3>
+<ul><li><code>imperative</code> = <strong>2.93次/千字</strong> → 支持 — 命令式指令密度（每千字）</li><li><code>hedge</code> = <strong>0.16次/千字</strong> → 反向 — 不确定措辞密度（每千字，低=果决）</li><li><code>imperative_ratio</code> = <strong>-</strong> · 待采集（指标未实现） — [medium] 主导性语言风格与 Assertiveness 相关</li><li><code>quick_pivot</code> = <strong>-</strong> · 待采集（指标未实现） — [low] 本地假设：决策速度信号，但可能反映探索阶段</li></ul>
+<h3>A2 礼貌 · 证据强度 ▮▮▯▯▯  2 项</h3>
+<ul><li><code>gratitude_politeness</code> = <strong>0.31次/千字</strong> → 支持 — 礼貌修饰密度</li><li><code>imperative</code> = <strong>2.93次/千字</strong> → 反向 — 命令式直接施压（低=礼貌）</li><li><code>politeness_markers</code> = <strong>-</strong> · 待采集（指标未实现） — [medium] 礼貌修饰与 Politeness facet 的语言表达对应</li><li><code>life_gratitude_politeness</code> = <strong>0.00次/千字</strong> · 零命中（不计证据） — [medium] 同上——生活情境的礼貌信号更接近特质而非角色表演</li></ul>
+<h3>N1 情绪波动 · 证据强度 ▮▮▯▯▯  2 项</h3>
+<ul><li><code>frustration</code> = <strong>2.51次/千字</strong> → 支持 — 挫败/愤怒表达密度</li><li><code>frustration_words</code> = <strong>-</strong> · 待采集（指标未实现） — [medium] 愤怒/挫败语言与 N2(Angry Hostility) 相关（LIWC anger 词表）</li><li><code>life_frustration</code> = <strong>7.12次/千字</strong> → 支持 — [medium] 情境分层权重：工作情境表达带职业角色成分，生活情境社会期望压力低（Mischel 情境论）</li></ul>
+<h3>N2 退缩 · 证据强度 ▮▯▯▯▯  1 项</h3>
+<ul><li><code>anxiety</code> = <strong>0.00次/千字</strong> · 零命中（不计证据） — 焦虑表达密度</li><li><code>self_doubt</code> = <strong>0.42次/千字</strong> → 支持 — 自我怀疑措辞密度</li><li><code>anxiety_words</code> = <strong>-</strong> · 待采集（指标未实现） — [medium] 焦虑语言与 N1(Anxiety) 的语言标记相关</li><li><code>self_doubt_phrases</code> = <strong>-</strong> · 待采集（指标未实现） — [low] 本地假设：与 N4(自我意识)相关，样本量要求高</li></ul>
+<h2>状态信号（state 轨道，不映射特质）</h2>
+<ul><li>深夜比 <code>62.3%</code> · 周末比 <code>52.8%</code> · 工作时段标准差 <code>8.9h</code>（低=节律稳定）</li><li>会话均轮数 <code>3.9轮</code> · 深度会话占比 <code>43.8%</code> · 纠错率 <code>12.4%</code></li></ul>
+<h3>场景分布（人 × 情境）</h3>
+<ul><li>工作 <code>13%</code> · 生活 <code>5%</code> · 未分类 <code>82%</code></li></ul>
+<blockquote>生活情境样本 &lt;5%，情境分层暂不出表（样本不足，避免过度解读）。</blockquote>
+<h2>校准状态（informant validation）</h2>
+<p>已应用 20 条当事人回答（2026-10-20T14:26）：SJT 行为票 14 · ✓ 确认 4 · ✗ 否认 0（含原因）· ◐ 盲区自评 2。</p>
+<blockquote>证据行标注：confirmed=用户确认成立 · discount_context=情境性（对 AI 如此对人未必）· discount_blindspot=数据盲区 · stated_*=盲区自评补充 · SJT 行为票=情景选择投给维度的票</blockquote>
+<h2>画像速览（已校准）</h2>
+<table><tr><td>维度</td><td>档位</td><td>依据</td></tr><tr><td>O1 智性开放</td><td><strong>倾向具备</strong></td><td>数据证据（3 项）+ 本人确认 · SJT行为票 +2</td></tr><tr><td>O2 经验开放</td><td><strong>中（自评）</strong></td><td>数据盲区，当事人自评 · SJT行为票 +3</td></tr><tr><td>C1 勤勉</td><td><strong>倾向具备</strong></td><td>数据证据（2 项）+ 本人确认 · SJT行为票 +1</td></tr><tr><td>C2 秩序</td><td><strong>低（自评）</strong></td><td>数据盲区，当事人自评</td></tr><tr><td>E1 热情</td><td><strong>倾向具备</strong></td><td>数据证据（2 项）+ 本人确认 · SJT行为票 +2</td></tr><tr><td>E2 果决</td><td><strong>倾向具备</strong></td><td>数据证据（2 项）+ SJT 行为票 +5（当事人行为选择）</td></tr><tr><td>A2 礼貌</td><td><strong>证据倾向</strong></td><td>2 项数据证据（未经校验）</td></tr><tr><td>N1 情绪波动</td><td><strong>倾向具备</strong></td><td>数据证据（2 项）+ 本人确认 · SJT行为票 +1</td></tr><tr><td>N2 退缩</td><td><strong>初步证据</strong></td><td>仅 1 项证据（未经校验）</td></tr></table>
+<blockquote>档位含义：倾向具备=数据+当事人双重支持（本人确认 或 SJT 行为票≥2）· 高/中/低（自评）=数据盲区由本人补充 · 证据倾向=仅数据侧支持（建议跑 confirm 校验）· 证据不足=待积累。<br>大五是维度制不是类型制：没有&quot;你是X型人&quot;的标签，类型制结论在职业域（霍兰德代码）。</blockquote>
+<h2>整体人格画像 🎯</h2>
+<h3>🛡️ 过控型（Overcontrolled） · 五维签名 <code>O+ C+ E+ A N+</code></h3>
+<blockquote>人群占比约 25% · 判定依据（自参照，非人群常模）：N 域稳定性 × C 域强度 × E 域活跃度的档位组合（强档 = 本人确认 / SJT 行为票≥2 / 自评高）</blockquote>
+<p>内在标准高，自律克制，对细节和正确性敏感。深思熟虑，</p>
+<p>不轻易表态——一旦表态，通常已经验证过多遍。</p>
+<p>情绪体验丰富但外显少，容易内耗在&quot;够不够好&quot;的自我审查里。</p>
+<p><strong>优势</strong></p>
+<ul><li>质量与可靠性：交付物可信，极少返工</li><li>深度思考：决策前的推演充分</li><li>风险敏感：能提前看到别人忽略的坑</li></ul>
+<p><strong>盲点</strong></p>
+<ul><li>反刍思维：同一问题反复自我审查，启动成本高</li><li>完美主义拖延：等&quot;准备好&quot;的时机成本</li><li>焦虑内化：压力不外显但持续消耗</li></ul>
+<p><strong>与 AI 的协作风格</strong>：把 AI 当验证伙伴：反复确认、多轮追问、要求证据——天然适配证据链工作流</p>
+<p><strong>成长方向</strong>：练习&quot;够好就发&quot;（ship before ready），给自我审查设截止时间</p>
+<h3>组合身份：过控型 × 研究取向</h3>
+<p>审慎学者：反复验证的科研习惯，自我审查压产出</p>
+<blockquote>差异化引擎：3 原型 × 6 兴趣首型 = 18 种组合身份，外加每人唯一的五维签名——原型给底盘，组合给身份，签名给指纹，三层都可回溯证据。</blockquote>
+<p><strong>📋 一句话自白（复制即发）</strong></p>
+<blockquote>我的 AI 镜像报告：<strong>「高精度仪器」</strong>🛡️ · 签名 <code>O+ C+ E+ A N+</code> · 赛博福尔摩斯<br>「交付前在脑内过了 37 遍，第 38 遍才敢按回车。」<br>赛博福尔摩斯 —— 证据链洁癖，结论强迫症。<br>—— 192 天 AI 交互数据全纪录分析 · [Agent Mirror]</blockquote>
+<blockquote>原型给方向感和记忆点，维度面板给证据和可证伪性——两层互查，档位与原型矛盾时以证据为准并重新校验。出处见 frameworks/personality/prototypes.yaml。</blockquote>
+<footer>Agent Mirror v0 · 本地生成 · 原始会话数据不出本机</footer>
+</div></body></html>
