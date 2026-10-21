@@ -1855,7 +1855,8 @@ def render_synthesis(panel, cal, F=None, days=None):
              "高/中/低（自评）=数据盲区由本人补充 · "
              "证据倾向=仅数据侧支持（建议跑 confirm 校验）· 证据不足=待积累。\n"
              "> 大五是维度制不是类型制：没有\"你是X型人\"的标签，类型制结论在职业域（霍兰德代码）。")
-    # 整体类型层：大五聚类原型（Asendorpf 2001 / Gerlach 2018）+ 原型×兴趣交叉身份
+    # 整体类型层：三原型（Asendorpf 2001；Gerlach 2018 大样本仅部分复现三原型、另提四型）
+    # + 原型×兴趣交叉身份
     riasec_first = None
     if F is not None:
         rank = riasec_rank(F, RIASEC_EVID)

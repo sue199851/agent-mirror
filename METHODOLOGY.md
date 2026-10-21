@@ -135,10 +135,13 @@ am.py calibrate → 引导完成 BFI-2 自评（60 题，公开量表，约 15 �
 维度档位是证据主体，类型层是它的"可传播摘要"——三层结构，层层可回溯：
 
 **① 大五原型（3 + 未定型兜底）**：resilient 稳健 / overcontrolled 过控 / undercontrolled 冲动。
-出处：Asendorpf et al. 2001（三原型聚类）→ Gerlach et al. 2018（*Nature Human Behaviour*，
-N≈1.5M 成年大样本复现三原型稳健存在）。判定规则自参照（prototypes.yaml）：
-N 域稳定性 × C 域强度 × E 域活跃度的**强档**组合；强档 = 本人确认 / SJT 行为票 ≥2 /
-自评高——判不上就输出「未定型」，宁缺毋滥（诚实结论优先于好看结论）。
+本项目沿用三原型体系，依据是 Asendorpf 系列研究（Asendorpf et al. 2001 三原型聚类）与
+Block & Block (1980) 自我控制理论传统。争议如实交代：Gerlach et al. 2018（*Nature Human
+Behaviour*，N≈1.5M 成年大样本）仅部分复现三原型，另提出 average / reserved /
+self-centered / role-model 四类型——三原型在大样本下的稳健性存在争议，本项目
+「判不上强档即输出未定型、宁缺毋滥」的设计正是对该争议的工程化回应。判定规则自参照
+（prototypes.yaml）：N 域稳定性 × C 域强度 × E 域活跃度的**强档**组合；强档 = 本人确认 /
+SJT 行为票 ≥2 / 自评高——判不上就输出「未定型」，宁缺毋滥（诚实结论优先于好看结论）。
 
 **② 五维签名（4⁵ = 1024 种）**：每域取两 aspect 中更强档位，压缩为一位四态码——
 `X+`（高）/ `X`（中）/ `x`（初步）/ `x−`（低），如 `O+ C+ E A N`。
@@ -190,6 +193,9 @@ r≈0.2-0.3，外向性仅预测销售/管理类），所以职业域立论于**
 - Barrick, M. R., & Mount, M. K. (1991). The Big Five personality dimensions and job performance. *Personnel Psychology*, 44(1).
 - Holland, J. L. (1997). *Making Vocational Choices* (3rd ed.).
 - Soto, C. J., & John, O. P. (2017). The next Big Five Inventory (BFI-2). *Journal of Personality and Social Psychology*, 113(1).
+- Block, J., & Block, J. H. (1980). The role of ego-control and ego-resiliency in the organization of behavior. In W. A. Collins (Ed.), *Minnesota Symposia on Child Psychology: Development of cognition, affect, and social relations* (Vol. 13). Hillsdale, NJ: Erlbaum.（自我控制/自我弹性理论，三原型的理论源头）
+- Asendorpf, J. B., Caspi, A., & Hofstee, W. K. B. (2001). The geography of adult personality types. *European Journal of Personality*, 15.（三原型聚类）
+- Gerlach, T. M., Farb, N. V. S., & Crone, E. A. (2018). Digging into human nature: Revisiting the robustness of personality prototypes. *Nature Human Behaviour*, 2.（N≈1.5M 大样本：仅部分复现三原型，另提出四类型）
 - Stachl, C., et al. (2020). Personality prediction from smartphone data. *PNAS*, 117(30).（行为特征层基石）
 - Azucar, D., Marengo, D., & Settanni, M. (2018). The digital traces of personality in the digital age. *Personality and Individual Differences*, 124.（元分析，权重先验来源）
 

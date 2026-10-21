@@ -1,6 +1,7 @@
 # 性格域框架 · 大五人格原型（整体类型层）
-# 出处: Asendorpf, Caspi & Hofstee (2001) 三原型；Gerlach, Herremans & Liebrand (2018)
-#       在 N≈150 万样本复现三/四类型结构（Nature Human Behaviour）
+# 出处: Asendorpf, Caspi & Hofstee (2001) 三原型（理论源头 Block & Block 1980 自我控制
+#       理论）；Gerlach, Farb & Crone (2018) N≈150 万大样本仅部分复现三原型、另提出
+#       average/reserved/self-centered/role-model 四类型（Nature Human Behaviour）
 # 说明: 回答"整体上我是哪一类人"——大五维度之上的聚类原型层。
 #       维度制（细粒度证据）+ 原型制（整体叙事）双层并存：
 #       原型给方向感和记忆点，维度给证据和可证伪性。
@@ -9,10 +10,15 @@
 
 framework: Big Five Prototypes
 citation: |
+  Block, J., & Block, J. H. (1980). The role of ego-control and ego-resiliency in
+  the organization of behavior. In W. A. Collins (Ed.), Minnesota Symposia on
+  Child Psychology: Development of cognition, affect, and social relations
+  (Vol. 13). Hillsdale, NJ: Erlbaum.
   Asendorpf, J. B., Caspi, A., & Hofstee, W. K. B. (2001). The geography of adult
   personality types. European Journal of Personality, 15.
-  Gerlach, M., Herremans, A. H. T., & Liebrand, L. (2018). Inferring personality
-  traits from the big five. Nature Human Behaviour, 2.
+  Gerlach, T. M., Farb, N. V. S., & Crone, E. A. (2018). Digging into human
+  nature: Revisiting the robustness of personality prototypes. Nature Human
+  Behaviour, 2.
 
 prototypes:
 
@@ -21,7 +27,7 @@ prototypes:
     emoji: 🧭
     nickname: 人形稳压器
     tagline: 天塌下来先截图，然后开始排计划。
-    population: "人群占比约 40%（Gerlach 2018）"
+    population: "人群占比约 40%（出处待核）"
     signature: 情绪稳 + 尽责中高 + 至少一域（外向/开放）活跃
     narrative: |
       情绪底盘稳，压力下不易变形。自信、适应力强，对挫折恢复快，

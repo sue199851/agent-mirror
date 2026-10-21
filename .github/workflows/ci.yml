@@ -1,0 +1,99 @@
+# 最小 CI —— 两条冒烟线，全程零第三方依赖安装
+#
+# 被测对象（只读，本 CI 不改动它们）：
+#   1. demo/gen_sample_data.py —— demo 合成数据生成器：固定种子 + 内置 14 项指标自验证
+#   2. scripts/am.py           —— Agent Mirror CLI：scan 冒烟（临时工作区 + custom 源）
+#
+# 依赖口径：本项目 stdlib-only，PyYAML 是可选依赖（am.py 读 config.yaml 需要，
+# 见 README「可选 PyYAML」）。因此本 CI 不 pip/apt 安装任何东西：
+#   - demo 自验证纯 stdlib → setup-python 双版本矩阵（3.9 / 3.12）
+#   - scan 冒烟用 runner 系统自带 python3 + python3-yaml（镜像预装，非 CI 安装）；
+#     若未来镜像缺失，前置检查会显式报错，而不是静默扫出 0 条消息后 grep 失败
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  demo-selfcheck:
+    name: demo 自验证（py${{ matrix.python-version }}）
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.12']
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v7
+
+      - name: 准备 Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 生成 demo 合成数据（内置 14 项指标自验证，越界即非零退出）
+        run: python3 demo/gen_sample_data.py
+
+      - name: 确定性校验（固定种子：再生成应与入库 demo 数据逐字节一致）
+        run: git diff --exit-code -- demo/sample-data/nightowl.jsonl
+
+  scan-smoke:
+    name: scan 冒烟（临时工作区 + custom 源）
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v7
+
+      - name: 前置检查：系统 python3 自带 PyYAML（am.py 读 config.yaml 用，不安装）
+        run: |
+          python3 --version
+          python3 -c 'import yaml; print("PyYAML", yaml.__version__, "（runner 系统自带）")' || {
+            echo "::error::系统 python3 缺 PyYAML——am.py 需要它解析 config.yaml，而本 CI 约定不安装任何第三方依赖"
+            exit 1
+          }
+
+      - name: 照 demo/README.md『怎么复现』在 $RUNNER_TEMP 搭临时工作区并跑 scan
+        run: |
+          set -euo pipefail
+          REPO="$PWD"                              # CI=checkout 工作区；本地等价跑=仓库根
+          WS="$RUNNER_TEMP/scan-smoke"
+          rm -rf "$WS" && mkdir -p "$WS" && cd "$WS"
+          mkdir scripts frameworks
+          cp "$REPO/scripts/am.py" scripts/
+          cp -r "$REPO"/frameworks/* frameworks/
+          python3 "$REPO/demo/gen_sample_data.py"  # 固定种子再生成（14 项自验证内置其中）
+          cp "$REPO/demo/sample-data/nightowl.jsonl" .
+          cat > config.yaml <<EOF
+          sources:
+            claude_code: {enabled: false}
+            openclaw: {enabled: false}
+            hermes: {enabled: false}
+            custom:
+              - name: synth-nightowl
+                type: jsonl
+                path: $PWD
+                session_glob: "nightowl.jsonl"
+                format:
+                  message_path: "\$.messages[*]"
+                  role_field: role
+                  role_user_value: user
+                  role_assistant_value: assistant
+                  text_field: text
+                  timestamp_field: created_at
+                  project_field: project
+          EOF
+          python3 scripts/am.py scan | tee scan-report.md
+
+      - name: 断言落点（demo/README.md 标称：371 真人消息 / 141 天）
+        run: |
+          grep -F '真人消息 371 条' "$RUNNER_TEMP/scan-smoke/scan-report.md"
+          grep -F '时间跨度 **141** 天' "$RUNNER_TEMP/scan-smoke/scan-report.md"
