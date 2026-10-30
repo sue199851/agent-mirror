@@ -199,6 +199,17 @@ AI 对话日志比日记更私密。因此：分析全程默认本地；任何 L
 - [ ] Phase 5 · calibrate（BFI-2 自评对照，分数升格 + 效度闭环）
 - [ ] chat 多轮会话（当前每轮独立 ask）
 - [ ] 网页版导出连接器（ChatGPT / Claude 导出 JSON）
+- [ ] audit · 分数↔证据重对账（借鉴 DeepTutor audit 模式：抽查画像条目重新拉证据链对照，
+      发现「证据已不存在 / 权重漂移」；快照 features.json 的 `_evidence_chain` 已是原料）
+- [ ] 画像问答（ask 人格化）若立项：只暴露综合层（当前画像），原始会话永不上行——
+      分层加载原则（DeepTutor L1/L2/L3 三级访问面已验证可行性）
+- [ ] 增量分析机制（P0 议题，暂缓）：build/analyze 全量重算 → meta seen-ids + 内容指纹增量。
+      坑预警：纯 id 差分不感知会话追加（DeepTutor 踩过；Claude Code 会话是重度追加型，
+      必须用 `(session_id, fingerprint)` 双键）；顺带 days_ago 预计算、scan 显示
+      「上次分析以来的积压」
+
+> 标注「借鉴 DeepTutor」的条目源自 2026-10-29 对 [HKUDS/DeepTutor](https://github.com/HKUDS/DeepTutor)
+> v1.7.0 三层记忆系统的源码研究（已吸收：条目级证据脚注、LLM 对冲守卫、维度 focus 声明）。
 
 ## 自测题（全部能答出来即通关）
 

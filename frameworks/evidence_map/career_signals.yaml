@@ -5,25 +5,42 @@
 #           就是兴趣与价值观最诚实的证据（比问卷的 stated preference 强）。
 # schema_version: 0.1
 
+# 维度 focus（声明式"看什么/不看什么"——报告面板头部展示，防证据错配）
+dimensions:
+  R:
+    focus: "看：排障/实操/复现类任务的自愿投注占比。不看：动手能力强弱（兴趣≠能力）。"
+  I:
+    focus: "看：原理追问、解释请求、因果探究的密度——研究型最硬的行为标记。"
+  A:
+    focus: "看：多版本/变体/风格探索类请求的占比（对「还有别的可能吗」的偏好）。"
+  S:
+    focus: "看：人际措辞/沟通/汇报类任务的占比。注意：AI 场景无真人交互，这是间接代理，证据强度天然打折。"
+  E:
+    focus: "看：规划/拆解/优先级请求 × 成就导向表达的组合。不看：管理头衔（投注才算数）。"
+  C:
+    focus: "看：批量/规范化/一致性检查类任务的占比——对结构化环境的偏好。"
+  values:
+    focus: "看：自愿时间投注的领域分布（显示性偏好）。这是职业域的立论根基——问卷问「你想要什么」，投注记录「你实际选了什么」。"
+
 mappings:
 
   # ── RIASEC 兴趣轴 ─────────────────────────
   - indicator: voluntary_project_distribution   # 自愿项目时间分布（非工作安排的学习/工具/实验）
     dimension: riasec.primary
-    direction: =
+    direction: "="
     confidence: high
     basis: 显示性偏好直接证据：I类(研究/原理) vs A类(创作) vs E类(商业/组织) 的投注比
     note: "示例：自发把 40% AI 时间投给编译器原理与工具链 → I 优势型；投给内容创作/视觉 → A"
 
   - indicator: task_type_taxonomy               # 任务类型谱系（调试/原理/规划/创作/沟通/批量处理 占比）
     dimension: riasec.profile
-    direction: =
+    direction: "="
     confidence: medium
     basis: 任务性质与兴趣类型的结构对应（Holland 环境论：行为是环境的采样）
 
   - indicator: debugging_vs_designing           # 排障类 vs 构建/设计类任务比
     dimension: R_vs_I
-    direction: =
+    direction: "="
     confidence: low
     basis: 本地假设：偏排障→R(现实型/解决实物问题)，偏设计→I/A，需本地校准
 

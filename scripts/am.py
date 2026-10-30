@@ -16,6 +16,7 @@
 """
 import argparse
 import glob
+import hashlib
 import json
 import os
 import re
@@ -770,6 +771,76 @@ def fmt(v):
     return str(v)
 
 
+# ──────────────────────── 条目级证据链（ARCHITECTURE §3 承诺） ────────────────────────
+# 面板每个"支持"判定的背后是哪些真实消息：会话ID + 片段哈希，可回溯原文。
+# 灵感来自 DeepTutor L2→L1 脚注链（ Apache-2.0，2026-10 源码研究），
+# 但粒度保持细粒度（会话+消息哈希，不退到"来源名"级）。
+# 红线：片段只进本地报告与 features.json，绝不进 LLM 提示词（privacy 档位管不到这里）。
+
+def _snippet(text, cat, width=64):
+    """围绕首个命中词截取定位窗口。片段是回溯锚点，不是语义摘要。"""
+    pos = -1
+    for w in LEXICON.get(cat, ()):
+        p = text.find(w)
+        if p >= 0 and (pos < 0 or p < pos):
+            pos = p
+    if pos < 0:
+        s, lo, hi = text.strip(), 0, width
+    else:
+        lo, hi = max(0, pos - 24), min(len(text), pos + width - 24)
+        s = text
+    out = " ".join(s[lo:hi].split())
+    if lo > 0:
+        out = "…" + out
+    if hi < len(s):
+        out = out + "…"
+    return out[:width + 8]
+
+
+def collect_evidence(msgs, max_per_ind=3, max_keep=240):
+    """真人消息流 → {指标: {"total": 命中总数, "items": [证据条目]}}（纯本地，零 LLM）。
+
+    - 语言类指标（LEXICON 词典命中）：每条命中消息一个条目（源/会话/项目/日期/哈希/片段），
+      取最近的 max_per_ind 条；total 保留全量命中数（不止样本）。
+    - deep_session（结构类）：证据 = 最近的深会话本身（>3 轮），条目描述轮次与时间跨度。
+    - scene_* 词典只做场景分类，不进证据链（不是面板指标）。"""
+    ev = {}
+    for m in msgs:
+        h = hashlib.sha1(m.text.encode("utf-8")).hexdigest()[:12]
+        for cat, n in lex_count(m.text).items():
+            if cat.startswith("scene_"):
+                continue
+            e = ev.setdefault(cat, {"total": 0, "items": []})
+            e["total"] += n
+            if len(e["items"]) < max_keep:
+                e["items"].append({
+                    "source": m.source, "session": (m.session or "")[:16],
+                    "project": m.project or "",
+                    "ts": m.ts.strftime("%Y-%m-%d") if m.ts else "?",
+                    "hash": h, "snippet": _snippet(m.text, cat), "_ts": m.ts or datetime.min})
+    # 结构类：deep_session —— 证据是"深会话"本身，不是某条消息
+    by_session = {}
+    for m in msgs:
+        by_session.setdefault((m.source, m.session, m.project), []).append(m)
+    deep = []
+    for (src, sid, proj), ms in by_session.items():
+        if len(ms) > 3:
+            tsd = [m.ts for m in ms if m.ts]
+            deep.append({"source": src, "session": (sid or "")[:16], "project": proj or "",
+                         "ts": max(tsd).strftime("%Y-%m-%d") if tsd else "?",
+                         "hash": "", "snippet": f"{len(ms)} 轮真人消息"
+                         + (f"（{min(tsd).strftime('%m-%d')}→{max(tsd).strftime('%m-%d')}）" if tsd else ""),
+                         "_ts": max(tsd) if tsd else datetime.min})
+    if deep:
+        ev["deep_session"] = {"total": len(deep),
+                              "items": sorted(deep, key=lambda x: x["_ts"], reverse=True)[:max_per_ind]}
+    for e in ev.values():
+        e["items"] = sorted(e["items"], key=lambda x: x["_ts"], reverse=True)[:max_per_ind]
+        for it in e["items"]:
+            del it["_ts"]                      # 排序键不落盘
+    return ev
+
+
 RATE_KEYS = {"night_ratio", "weekend_ratio", "followup", "deep_session", "correction_rate"}
 
 
@@ -797,6 +868,21 @@ def load_mapping(track):
         return merged                       # 未匹配 code 的维度(state.*/env.*/价值观)留给 v0.2 分数层
     except Exception:
         return builtin
+
+
+def load_dim_focus(track):
+    """维度 focus 声明（evidence_map YAML 顶层 dimensions: 块）。
+    每维度一句话"看什么/不看什么"，报告面板头部展示，防证据错配。
+    灵感：DeepTutor surfaces/slots 的 focus 声明式写法。解析失败返回 {}（可缺省）。"""
+    fname = "behavioral.yaml" if track == "personality" else "career_signals.yaml"
+    path = os.path.join(ROOT, "frameworks", "evidence_map", fname)
+    try:
+        import yaml
+        data = yaml.safe_load(open(path, encoding="utf-8")) or {}
+        return {str(k).split(".")[0].strip(): str(v.get("focus", "")).strip()
+                for k, v in (data.get("dimensions") or {}).items() if isinstance(v, dict)}
+    except Exception:
+        return {}
 
 
 def fmt_ind(ind, v):
@@ -891,14 +977,63 @@ def redact(text, patterns):
     return text
 
 
+# ──────────────────────── 对冲表述守卫（DeepTutor 借鉴） ────────────────────────
+# 绝对化措辞是 LLM 人格解读的头号通胀源。prompt 里禁 + 产出后 lint（确定性），
+# 双层防线：先防，防不住就标注（不静默改写——改写过的"证据"更危险）。
+
+BANNED_ABSOLUTIST = ["总是", "从不", "绝对", "完全", "永远", "必然", "百分百",
+                     "热爱", "痴迷", "深恶痛绝", "专家级", "完美掌握", "炉火纯青"]
+
+HEDGE_RULES = (
+    "措辞硬规则（对冲表述，防过度断言）：\n"
+    "- 禁用绝对化措辞，除非用「」原样引用用户的话："
+    + "、".join(BANNED_ABSOLUTIST[:8]) + " 等。\n"
+    "- 每个行为断言必须绑定计数或时间窗（如「近 N 天的 X% 会话中」「共 M 条消息里出现 K 次」），"
+    "不写无锚点的概括。\n"
+    "- 优先动词短语（做了 X / 偏好 X 甚于 Y），少用形容词堆叠。")
+
+
+def absolutist_lint(text):
+    """文本 → 绝对化措辞违规清单 [(词, 上下文)]。「」内引用不算（那是用户原话）。"""
+    out = []
+    clean = re.sub(r"「[^」]*」", "", text or "")
+    for w in BANNED_ABSOLUTIST:
+        for m in re.finditer(re.escape(w), clean):
+            ctx = " ".join(clean[max(0, m.start() - 12):m.end() + 12].split())
+            out.append((w, ctx))
+    return out
+
+
+def llm_guarded(cfg, system, user, max_tokens=3000, what="LLM 层"):
+    """llm_chat + 对冲守卫：违规 → 带指正重试一次 → 仍违规 → 返回文本并附标注。
+    返回 (text, violations)：violations 非空 = 终检仍有违规（调用方决定标注/丢弃）。"""
+    text = llm_chat(cfg, system, user, max_tokens=max_tokens)
+    viol = absolutist_lint(text)
+    if viol:
+        words = "、".join(sorted({w for w, _ in viol}))
+        retry_user = (user + f"\n\n【上一版被措辞检查打回】检测到绝对化表述：{words}。"
+                      f"请重写完整内容：所有断言改为绑定计数/时间窗的对冲表述后原样输出全部内容。")
+        try:
+            text2 = llm_chat(cfg, system, retry_user, max_tokens=max_tokens)
+            if text2:
+                text, viol = text2, absolutist_lint(text2)
+        except Exception:
+            pass                            # 重试失败沿用首版 + 标注
+    return text, viol
+
+
 def llm_analyze(cfg, track, F, msgs):
     """按 privacy 档位决定 LLM 能看到什么：
-    stats_only → 只发统计指标（解读，不评分）；redacted → 发脱敏样本（BARS 评分）"""
+    stats_only → 只发统计指标（解读，不评分）；redacted → 发脱敏样本（BARS 评分）。
+    措辞走对冲守卫：断言必须绑定计数/时间窗，绝对化表述先重试、残留则标注。"""
     exposure = (cfg.get("privacy") or {}).get("llm_exposure", "stats_only")
     if exposure == "off":
         return "*(privacy=off，LLM 层已禁用)*"
     scope = ("BFAS 十维度（智性/求新·勤勉/秩序·热情/果决·共情/礼貌·波动/退缩）"
              if track == "personality" else "RIASEC 六型（现实/研究/艺术/社会/企业/常规）+ O*NET 工作价值观")
+    tsd = [m.ts for m in msgs if m.ts]
+    days = (max(tsd) - min(tsd)).days if tsd else 0
+    anchor = f"（数据锚点：共 {len(msgs)} 条真人消息，跨度 {days} 天）"
     stats_text = "\n".join(f"- {k}: {fmt(v)}" for k, v in F.items()
                            if isinstance(v, (int, float)) and not k.startswith("task"))
     if exposure == "redacted" and msgs:
@@ -906,21 +1041,32 @@ def llm_analyze(cfg, track, F, msgs):
         samples = "\n---\n".join(redact(m.text[:500], pats) for m in msgs[:30])
         prompt = (f"你是受过心理测量训练的评估助手。基于以下用户与其 AI 助手的真实对话样本（已脱敏），"
                   f"按 {scope} 逐维度评分（1-5，行为锚定：1=几乎无此行为证据，5=证据非常充分），"
-                  f"每个维度给出：分数、支持证据（引用原文片段）、不确定说明。\n\n"
+                  f"每个维度给出：分数、支持证据（引用原文片段）、不确定说明。\n"
+                  f"{HEDGE_RULES}\n\n"
                   f"对话样本：\n{samples}\n\n统计特征（辅助）：\n{stats_text}")
     else:
-        prompt = (f"你是人格测量解读助手。以下是某用户 6 个月 AI 交互的统计特征（无原文，"
+        prompt = (f"你是人格测量解读助手。以下是某用户 AI 交互的统计特征（无原文，"
                   f"语言类为每千字密度）。请按 {scope} 逐维度解读：这些指标组合指向什么行为模式、"
                   f"哪些维度证据充分哪些不足、有什么需要警惕的过度解读。输出 markdown，"
-                  f"禁止给出绝对分数，只做证据方向性解读。\n\n{stats_text}")
+                  f"禁止给出绝对分数，只做证据方向性解读。\n"
+                  f"{HEDGE_RULES}\n{anchor}\n\n{stats_text}")
     try:
-        return llm_chat(cfg, "你是严谨的心理测量助手，遵循证据、避免过度解读、用中文输出。", prompt)
+        text, viol = llm_guarded(cfg, "你是严谨的心理测量助手，遵循证据、避免过度解读、用中文输出。", prompt)
     except Exception as e:
         return f"*(LLM 层调用失败: {e})*"
+    if viol:
+        words = "、".join(sorted({w for w, _ in viol}))
+        text += (f"\n\n> ⚠️ **措辞检查**：LLM 层残留 {len(viol)} 处绝对化表述（{words}），"
+                 f"已重试仍存在。阅读时请自行对冲——可证伪表述以规则层指标为准，本段仅作方向性参考。")
+    return text
 
 
 # ──────────────────────── analyze 报告 ────────────────────────
-def render_analyze(track, F, panel, mapping, llm_text, n_msgs, days, verified=None, mode="rules", headline=None):
+_EV_MAX_REFS = 40        # 证据脚注上限：防报告膨胀（超出部分只在 features.json 保留）
+
+
+def render_analyze(track, F, panel, mapping, llm_text, n_msgs, days, verified=None,
+                   mode="rules", headline=None, evidence=None, focus_map=None):
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     title = "性格镜像" if track == "personality" else "职业罗盘"
     status = (f"✅ 状态：**已校准**（{verified} 条当事人回答）" if verified
@@ -937,10 +1083,37 @@ def render_analyze(track, F, panel, mapping, llm_text, n_msgs, days, verified=No
         # 结论前置：1 秒看懂测出啥（原型/签名/组合身份/霍兰德），细节解读在下方证据面板
         L.append(headline)
         L.append("\n---\n")
+    # 条目级证据脚注注册表（§3 承诺）：同一消息被多指标引用时共享编号
+    refs, ref_rows = {}, []
+
+    def _markers(ind, val):
+        """面板行 → 脚注标记串。仅"有真实证据值"的行挂链（零命中/未实现不挂）。"""
+        if not evidence or val == "-" or not is_evidence(val):
+            return ""
+        e = evidence.get(ind)
+        if not e or not e.get("items"):
+            return ""
+        labels = []
+        for it in e["items"]:
+            if len(ref_rows) >= _EV_MAX_REFS and (it["source"], it["session"], it["hash"] or it["snippet"]) not in refs:
+                break
+            key = (it["source"], it["session"], it["hash"] or it["snippet"])
+            if key not in refs:
+                refs[key] = len(ref_rows) + 1
+                h = f" · #{it['hash']}" if it["hash"] else ""
+                ref_rows.append(f"[^{refs[key]}]: {it['source']} · `{it['session']}` · "
+                                f"{pretty_project(it['project'])} · {it['ts']}{h} · 「{it['snippet']}」")
+            labels.append(f"[^{refs[key]}]")
+        return " " + " ".join(labels) if labels else ""
+
+    def _focus(dim):
+        fcs = (focus_map or {}).get(dim.split()[0].split(".")[0])
+        return f"\n> 🎯 {fcs}" if fcs else ""
+
     if track == "personality":
         L.append("## BFAS 十维 · 证据面板\n")
         for dim, rows in panel.items():
-            L.append(f"### {dim} · 证据强度 {evidence_strength(rows)}\n")
+            L.append(f"### {dim} · 证据强度 {evidence_strength(rows)}{_focus(dim)}\n")
             for ind, val, direction, note in rows:
                 if val == "-":
                     arrow = "· 待采集（指标未实现）"
@@ -948,7 +1121,7 @@ def render_analyze(track, F, panel, mapping, llm_text, n_msgs, days, verified=No
                     arrow = {"+": "→ 支持", "-": "→ 反向", "?": "→ 待证"}.get(direction, "")
                 else:
                     arrow = "· 零命中（不计证据）"
-                L.append(f"- `{ind}` = **{val}** {arrow} — {note}")
+                L.append(f"- `{ind}` = **{val}** {arrow} — {note}" + _markers(ind, val))
             L.append("")
         L.append("## 状态信号（state 轨道，不映射特质）\n")
         L.append(f"- 深夜比 `{fmt_ind('night_ratio', F.get('night_ratio'))}` · "
@@ -991,7 +1164,7 @@ def render_analyze(track, F, panel, mapping, llm_text, n_msgs, days, verified=No
                 else:                                # 语言密度类：按标定满权值归一
                     s += min(F[ind] / LANG_SCALE.get(ind, 2.0), 1.0)
             scores[dim] = s
-            L.append(f"### {dim} · 加权分 {s:.2f}\n")
+            L.append(f"### {dim} · 加权分 {s:.2f}{_focus(dim)}\n")
             for ind, val, direction, note in rows:
                 if val == "-":
                     arrow = "· 待采集（指标未实现）"
@@ -999,7 +1172,7 @@ def render_analyze(track, F, panel, mapping, llm_text, n_msgs, days, verified=No
                     arrow = {"+": "→ 支持", "-": "→ 反向", "?": "→ 待证"}.get(direction, "")
                 else:
                     arrow = "· 零命中（不计证据）"
-                L.append(f"- `{ind}` = **{val}** {arrow} — {note}")
+                L.append(f"- `{ind}` = **{val}** {arrow} — {note}" + _markers(ind, val))
             L.append("")
         rank = riasec_rank(F, mapping)
         code = "".join(k[0] for k, _ in rank[:3])   # 霍兰德代码（前三高）
@@ -1024,6 +1197,15 @@ def render_analyze(track, F, panel, mapping, llm_text, n_msgs, days, verified=No
         for k, n, d, s in sorted(inv, key=lambda x: -x[3])[:10]:
             src, _, name = k.partition(":")
             L.append(f"| {src}:`{pretty_project(name)}` | {n} | {d} | {s:.0f} |")
+        L.append("")
+    if ref_rows:
+        L.append(f"## 证据链 · 条目级回溯（{len(ref_rows)} 条脚注"
+                 + ("，已达上限" if len(ref_rows) >= _EV_MAX_REFS else "") + "）\n")
+        L.append("> 面板行尾的 [^n] 指向真实消息的指纹：源 · 会话ID · 项目 · 日期 · 片段哈希（#sha1 前 12 位）。")
+        L.append("> 回溯原文：`am.py search \"<片段关键词>\"`，或在源目录（如 ~/.claude/projects/<项目>/）"
+                 "内检索会话ID。片段仅为定位锚点，不代表完整语义；完整链（含命中总数）"
+                 "见同快照 features.json 的 `_evidence_chain`。\n")
+        L.extend(ref_rows)
         L.append("")
     if llm_text:
         L.append("## LLM 层解读\n\n" + llm_text + "\n")
@@ -1497,7 +1679,9 @@ def llm_questions(cfg, track, F, panel, cal):
         "3. 选项间要有真实区分度；禁止元问题（不问'准不准'，只问'你会怎么做'）\n"
         "4. 优先覆盖：证据强但未确认的维度（行为票可升强档）、证据弱/盲区的维度"
         "（从面板命中数看出来）、上次被否认的维度换角度出题\n"
-        "5. 只输出 JSON 数组，无其他文字："
+        "5. 题干与选项避免绝对化措辞（总是/从不/绝对/完全/永远等），场景具体但表述中性——"
+        "引导性题目测不出真实偏好\n"
+        "6. 只输出 JSON 数组，无其他文字："
         '[{"scene":"...","options":[{"text":"...","votes":{"O1":"+"}}]}]')
     try:
         raw = llm_chat(cfg, sysmsg, prompt, max_tokens=3000)
@@ -1511,6 +1695,9 @@ def llm_questions(cfg, track, F, panel, cal):
         qs, effects = [], []
         # VALID 按域取（BFAS 九维 或 霍兰德六型），过滤 LLM 手滑代码
         for it in items[:3]:
+            scene = str(it.get("scene", ""))
+            if absolutist_lint(scene):     # 绝对化题干 = 引导性题目，测不出偏好，整题丢弃
+                continue
             opts_raw = [o for o in it.get("options", []) if o.get("text")][:4]
             if len(opts_raw) < 3:
                 continue
@@ -1520,7 +1707,7 @@ def llm_questions(cfg, track, F, panel, cal):
                 votes_map["ABCD"[j]] = {str(k): str(v) for k, v in (o.get("votes") or {}).items()
                                         if str(k) in VALID and str(v) in ("+", "-")}
             qs.append({"type": "sjt", "dimension": "情景判断",
-                       "text": str(it.get("scene", "")), "options": opts, "votes": votes_map})
+                       "text": scene, "options": opts, "votes": votes_map})
             effects.append(None)
         if len(qs) >= 2:
             # 确定性补充：证据确认 + 盲区自评（数字来自真实面板，构造上保证题型齐全）
@@ -1711,8 +1898,10 @@ def run_diff(track):
     print("| 指标 | 前值 | 后值 | 变化 | 轨道 |")
     print("|------|------|------|------|------|")
     for k, v1, v2, delta, arrow, t in rows:
-        fv = lambda x: f"{x:.1%}" if isinstance(x, float) and x <= 1 else f"{x:.2f}"
-        print(f"| `{k}` | {fv(v1)} | {fv(v2)} | {arrow}{fv(abs(delta))} | {t} |")
+        # 单位感知显示（fmt_ind）：密度类"次/千字"不再在跨 1.0 时翻转成百分比
+        s1, s2 = fmt_ind(k, v1), fmt_ind(k, v2)
+        dv = f"{abs(delta):.1%}" if (s1 + s2).endswith("%") else f"{abs(delta):.2f}"
+        print(f"| `{k}` | {s1} | {s2} | {arrow}{dv} | {t} |")
     print("\n> 解读规则：state 指标短期波动属正常；trait 指标的单次变化无意义，"
           "关注 90 天以上趋势（EMA 半衰期设计，见 METHODOLOGY §4）。")
 
@@ -2146,6 +2335,7 @@ def main():
         tsd = [m.ts for m in msgs if m.ts]
         days = (max(tsd) - min(tsd)).days if tsd else 0
         F = extract_features(msgs, cfg)
+        ev = collect_evidence(msgs)          # 条目级证据链（本地，零 LLM；片段不进任何提示词）
         tracks = ["personality", "career"] if track == "both" else [track]
         for t in tracks:
             mapping = load_mapping(t)            # 总库 YAML 优先，内置为兜底
@@ -2157,7 +2347,8 @@ def main():
             verified = len(cal.get("answers", [])) if cal and cal.get("answers") else 0
             headline = render_headline(t, F, panel, cal, len(msgs), days, mapping)
             report = render_analyze(t, F, panel, mapping, llm_text, len(msgs), days,
-                                    verified=verified, mode=args.mode, headline=headline)
+                                    verified=verified, mode=args.mode, headline=headline,
+                                    evidence=ev, focus_map=load_dim_focus(t))
             # 校准状态应用（confirm 交卷后生效）+ 画像速览（证据+校准综合结论）
             if cal and cal.get("answers"):
                 n_sjt = sum(1 for a in cal["answers"] if a.get("type") == "sjt")
@@ -2203,6 +2394,9 @@ def main():
             fjson["_investment"] = [list(x) for x in F.get("investment", [])]
             fjson["_meta"] = {"n_msgs": len(msgs), "days": days,
                                "generated": datetime.now().isoformat(timespec="minutes")}
+            # 条目级证据链（含命中总数；未来 audit"分数↔证据重对账"的原料，diff 忽略非数值键）
+            fjson["_evidence_chain"] = {k: {"total": v["total"], "items": v["items"]}
+                                        for k, v in ev.items()}
             with open(os.path.join(snap, "features.json"), "w", encoding="utf-8") as f:
                 json.dump(fjson, f, ensure_ascii=False, indent=1)
             print(f"📄 人读报告: {rbase}.md / .html（浏览器直接打开）", file=sys.stderr)

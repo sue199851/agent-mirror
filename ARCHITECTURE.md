@@ -146,3 +146,9 @@ config.yaml → privacy.llm_exposure:
 ## 变更记录
 
 - 2026-10-16 v0.1 初版：三域一底座；性格/职业分域；总库三层；trait/state 双轨；脱敏管线
+- 2026-10-29 P1 落地（§3 承诺兑现）：条目级证据脚注——面板每条支持判定挂真实消息指纹
+  （源·会话ID·日期·片段哈希），报告尾「证据链」节 + 快照 features.json `_evidence_chain`；
+  LLM 层对冲守卫（禁绝对化措辞 + 断言绑定计数/时间窗，先重试后标注，不静默改写）；
+  evidence_map 顶层 `dimensions.focus` 声明（"看什么/不看什么"，面板头部展示）。
+  借鉴来源：DeepTutor（HKUDS，Apache-2.0）三层记忆 v1.7.0 源码研究；粒度刻意保持细粒度
+  （会话+消息哈希，不退到 DeepTutor 的"来源名"级）。
