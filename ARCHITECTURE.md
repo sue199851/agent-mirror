@@ -152,3 +152,8 @@ config.yaml → privacy.llm_exposure:
   evidence_map 顶层 `dimensions.focus` 声明（"看什么/不看什么"，面板头部展示）。
   借鉴来源：DeepTutor（HKUDS，Apache-2.0）三层记忆 v1.7.0 源码研究；粒度刻意保持细粒度
   （会话+消息哈希，不退到 DeepTutor 的"来源名"级）。
+- 2026-10-29 隐私加固（§7 兑现）：`ask` 原先无档位检查直传原始片段——现按档位执行
+  （stats_only/off 降级为纯本地检索输出；redacted 片段经 redact_patterns 打码后上行）；
+  `llm_chat` 增加 off 中心闸（任何调用点漏检也不上行）；confirm 出题在 stats_only 下
+  隐去项目名只留量级；新增 `scripts/privacy_audit.py` 金丝雀审计（stub LLM 捕获 payload，
+  三档断言，已挂 CI）。

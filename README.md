@@ -95,7 +95,7 @@ python3 scripts/am.py analyze && python3 scripts/am.py diff personality
 | `scan` | 数据体检：各源消息量、真人/自动分轨、时段分布、项目投注 Top | 全部数据源 | ❌ | stdout（`--report` 存文件） |
 | `build` | 建库：物化统一消息流 + FTS 检索索引 | 全部数据源 | ❌ | index/ |
 | `search "<kw>"` | 检索历史会话（中文 LIKE 加权，秒回） | limit=10 | ❌ | — |
-| `ask "<问题>"` | 检索 + LLM 归纳（带来源；无 key 降级为检索清单） | limit=8 | 可选 | — |
+| `ask "<问题>"` | 检索 + LLM 归纳（带来源；**需 `redacted` 档**——片段打码后上行；`stats_only`/`off` 与无 key 一样降级为检索清单，§7） | limit=8 | 可选 | — |
 | `analyze` | 双域画像报告：证据面板 → 档位速览 → 原型/霍兰德 → 一句话自白 | **track=both**（双域都出）· mode=rules | 可选 | reports/*.md+html + 快照 |
 | `confirm` | 当事人校验：SJT 情景 + 证据确认 + 盲区自评，答案回写影响下次 analyze 档位 | **track=personality**（职业域须 `--track career`）· mode=auto | 可选 | profiles/*/calibration.yaml |
 | `diff [track]` | 快照漂移对比（state 波动 vs trait 漂移） | track=personality | ❌ | — |

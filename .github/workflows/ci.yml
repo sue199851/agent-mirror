@@ -97,3 +97,22 @@ jobs:
         run: |
           grep -F '真人消息 371 条' "$RUNNER_TEMP/scan-smoke/scan-report.md"
           grep -F '时间跨度 **141** 天' "$RUNNER_TEMP/scan-smoke/scan-report.md"
+
+  privacy-audit:
+    name: 隐私上传审计（金丝雀断言：stats/redacted/off 三档上行口径）
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v7
+
+      - name: 前置检查：系统 python3 自带 PyYAML（与 scan 冒烟同口径）
+        run: |
+          python3 --version
+          python3 -c 'import yaml; print("PyYAML", yaml.__version__, "（runner 系统自带）")' || {
+            echo "::error::系统 python3 缺 PyYAML——am.py 需要它解析 config.yaml，而本 CI 约定不安装任何第三方依赖"
+            exit 1
+          }
+
+      - name: 隐私审计（stub LLM 捕获 payload，断言失败即非零退出）
+        run: python3 scripts/privacy_audit.py

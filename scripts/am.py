@@ -952,6 +952,12 @@ def llm_key(cfg):
 
 def llm_chat(cfg, system, user, max_tokens=3000):
     import urllib.request
+    # 中心闸（ARCHITECTURE §7）：privacy=off 禁用一切 LLM 上行。调用点各自做内容档位
+    # 整形（stats_only/redacted 发什么由调用方决定），但 off 在这里兜底拒绝——
+    # 任何新增调用点漏检也不会把内容发出去。
+    if (cfg.get("privacy") or {}).get("llm_exposure", "stats_only") == "off":
+        print("⛔ privacy.llm_exposure=off：LLM 上行已禁用（llm_chat 中心闸）", file=sys.stderr)
+        return None
     key = llm_key(cfg)
     if not key:
         return None
@@ -1465,20 +1471,21 @@ def load_cached_msgs():
 
 
 def ask_llm(cfg, question, rows, cached):
-    """检索命中 → 拼上下文（每条带前后1条）→ LLM 归纳。"""
-    by_key = {}
-    for i, d in enumerate(cached):
-        by_key.setdefault((d["source"], d["session"]), []).append(i)
-    idx_of = {}
-    for key, idxs in by_key.items():
-        for pos, i in enumerate(idxs):
-            idx_of[i] = (key, pos)
+    """检索命中 → 拼上下文（每条带前后1条）→ LLM 归纳。
+    隐私档位（§7 ask 同样受约束）：片段是原始会话文本，stats_only 下不上行
+    （返回 None，调用方降级为纯本地检索输出）；redacted 下按 redact_patterns
+    打码后上行；off 由 llm_chat 中心闸拒绝。"""
+    exposure = (cfg.get("privacy") or {}).get("llm_exposure", "stats_only")
+    if exposure != "redacted":
+        return None
+    pats = (cfg.get("privacy") or {}).get("redact_patterns", [])
     frags = []
     for text, source, project, ts, role in rows[:8]:
         head = f"[{source} · {project} · {ts} · {role}]"
-        frags.append(f"{head}\n{text[:600]}")
+        # 片段与来源头一起过脱敏管线（路径/VIN/邮箱按 redact_patterns 打码）
+        frags.append(redact(f"{head}\n{text[:600]}", pats))
     ctx = "\n---\n".join(frags)
-    prompt = (f"以下是用户与其 AI 助手的历史对话片段（已检索）。请回答用户问题；"
+    prompt = (f"以下是用户与其 AI 助手的历史对话片段（已检索、已按隐私规则打码）。请回答用户问题；"
               f"回答须引用片段内容（标注来源），片段不足以回答的部分明确说明不知道，禁止编造。\n\n"
               f"问题：{question}\n\n片段：\n{ctx}")
     return llm_chat(cfg, "你是严谨的知识库问答助手，忠于检索证据，用中文简洁回答。", prompt)
@@ -1626,8 +1633,17 @@ def llm_questions(cfg, track, F, panel, cal):
     固定题库仅作 few-shot 示例定格式 + 无 key 兜底（题库只有 BFAS 编码题，
     rules 模式下职业域不出 SJT——LLM 模式才有）。"""
     is_career = (track == "career")
-    invest = "；".join(f"{k.split(':', 1)[-1].split('/')[-1][:30]}({n}条/{d}天)"
-                       for k, n, d, *_ in F.get("investment", [])[:5]) or "通用"
+    exposure = (cfg.get("privacy") or {}).get("llm_exposure", "stats_only")
+    pats = (cfg.get("privacy") or {}).get("redact_patterns", [])
+    if exposure == "redacted":
+        # 项目名（basename）在 redacted 档允许上行，但与其他文本一样过脱敏管线
+        invest = "；".join(f"{redact(k.split(':', 1)[-1].split('/')[-1][:30], pats)}({n}条/{d}天)"
+                           for k, n, d, *_ in F.get("investment", [])[:5]) or "通用"
+    else:
+        # stats_only 严口径：项目名不属于"数字与比例"，隐去名称只留量级
+        #（题目个性化程度降低，换来零项目元数据上行——档位是用户自己配的，从严执行）
+        invest = "；".join(f"项目{i}({n}条/{d}天)"
+                           for i, (k, n, d, *_) in enumerate(F.get("investment", [])[:5], 1)) or "通用"
     # 证据面板摘要：各维度命中数
     panel_text = "; ".join(f"{dim}:{sum(1 for _, v, d, _ in rows if is_evidence(v) and d != '?')}项"
                            for dim, rows in panel.items())
@@ -2462,7 +2478,17 @@ def main():
             for text, source, project, ts, role in rows:
                 print(f"- [{source} · {pretty_project(project)} · {ts}]\n  {text[:150]}…\n")
             sys.exit(0)
-        print(f"🔎 检索命中 {len(rows)} 条，LLM 归纳中…\n", file=sys.stderr)
+        exposure = (cfg.get("privacy") or {}).get("llm_exposure", "stats_only")
+        if exposure != "redacted":
+            # §7：ask 的 LLM 归纳需要会话片段上行——stats_only（默认）只允许统计指标，
+            # off 禁用一切上行。两档都降级为纯本地检索输出（与无 key 同路）。
+            print(f"🔒 privacy.llm_exposure={exposure}：片段上行未获档位允许，降级为纯本地检索结果"
+                  f"（要启用 LLM 归纳：config.yaml → llm_exposure: redacted，"
+                  f"片段将按 redact_patterns 打码后上行）：\n")
+            for text, source, project, ts, role in rows:
+                print(f"- [{source} · {pretty_project(project)} · {ts}]\n  {text[:150]}…\n")
+            sys.exit(0)
+        print(f"🔎 检索命中 {len(rows)} 条，LLM 归纳中（redacted 档：片段已按规则打码）…\n", file=sys.stderr)
         ans = ask_llm(cfg, q, rows, load_cached_msgs())
         print(ans if ans else "❌ LLM 调用失败（检查 config.yaml llm 段与 key）")
 
